@@ -23,10 +23,7 @@ A staff-centered web platform for small and medium restaurants: reservations, ta
 
 ## Quick Start (Local Demo)
 
-1. Clone the repository and navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
+1. Clone the repository.
 
 2. Install dependencies (requires `pnpm`):
    ```bash
@@ -54,14 +51,14 @@ When you first load the application, the `db.js` layer will automatically interc
 
 ```text
 restaurant-management-system/
-├── frontend/             # Vanilla JS + Vite SPA (src/main.js is the router)
-│   ├── public/           # Assets, favicon, and PWA manifest
-│   ├── src/
-│   │   ├── components/   # Reusable UI components
-│   │   ├── store/        # Local state management & DB wrapper
-│   │   ├── styles/       # Tailwind CSS entry points
-│   │   ├── utils/        # Theme & auth utilities
-│   │   └── views/        # Main route views (Dashboard, Kitchen, POS, etc.)
+├── public/           # Assets, favicon, and PWA manifest
+├── src/
+│   ├── components/   # Reusable UI components
+│   ├── store/        # Local state management & DB wrapper
+│   ├── styles/       # Tailwind CSS entry points
+│   ├── utils/        # Theme & auth utilities
+│   └── views/        # Main route views (Dashboard, Kitchen, POS, etc.)
+├── index.html        # Entry point
 └── README.md
 ```
 
