@@ -1,7 +1,26 @@
 import { createStore } from "./index.js";
-import * as auth from "../services/authService.js";
+import { getCollection, insertItem, deleteItem, updateItem } from "./data/db.js";
 
-const savedUser = auth.getCurrentUser();
+const SESSION_KEY = "rms_session";
+
+function getSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveSession(user) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+}
+
+function clearSession() {
+  localStorage.removeItem(SESSION_KEY);
+}
+
+const savedUser = getSession();
 
 const authStore = createStore({
   user: savedUser,
@@ -10,23 +29,35 @@ const authStore = createStore({
 });
 
 export async function login(username, password) {
-  const result = await auth.login(username, password);
-
-  if (result.success) {
+  const users = getCollection("users");
+  const user = users.find(u => u.username === username); // Fake password check
+  
+  if (user) {
+    const loggedUser = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      name: user.full_name || user.username,
+      role: user.role,
+      is_active: user.is_active !== false,
+      createdAt: user.created_at || new Date().toISOString(),
+    };
+    saveSession(loggedUser);
     authStore.setState({
-      user: result.user,
+      user: loggedUser,
       isAuthenticated: true,
       error: null,
     });
+    return { success: true, user: loggedUser };
   } else {
-    authStore.setState({ error: result.error });
+    const err = "Invalid username or password";
+    authStore.setState({ error: err });
+    return { success: false, error: err };
   }
-
-  return result;
 }
 
 export function logout() {
-  auth.logout();
+  clearSession();
   authStore.setState({ user: null, isAuthenticated: false, error: null });
 }
 
@@ -70,19 +101,50 @@ export async function addUser(userData) {
   if (!u || u.role !== "admin") {
     return { success: false, error: "Only admins can create users" };
   }
-  return await auth.createUser(userData);
+  
+  const newUser = {
+    id: "user-" + Date.now(),
+    username: userData.username,
+    email: userData.email,
+    password: userData.password,
+    full_name: userData.full_name || userData.username,
+    role: userData.role || "waiter",
+    created_at: new Date().toISOString()
+  };
+  
+  insertItem("users", newUser);
+  return { success: true, user: newUser };
 }
 
 export async function removeUser(userId) {
-  return await auth.deleteUser(userId);
+  try {
+    deleteItem("users", userId);
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
 }
 
 export async function changeUserRole(userId, newRole) {
-  return await auth.updateUserRole(userId, newRole);
+  try {
+    const user = updateItem("users", userId, { role: newRole });
+    return { success: true, user };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
 }
 
 export async function listUsers() {
-  return await auth.getAllUsersSafe();
+  const users = getCollection("users");
+  return users.map(u => ({
+    id: u.id,
+    username: u.username,
+    email: u.email,
+    name: u.full_name || u.username,
+    role: u.role,
+    is_active: u.is_active !== false,
+    createdAt: u.created_at,
+  }));
 }
 
 export function subscribe(listener) {

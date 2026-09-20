@@ -23,14 +23,23 @@ function renderFloatingButton() {
 
   const wrapper = document.createElement("div");
   wrapper.id = "dev-role-switcher";
-  wrapper.style.cssText =
-    "position:fixed;bottom:20px;right:20px;z-index:9999;font-family:system-ui,sans-serif;";
+
+  // Check if we can inject into topbar
+  const topbarContainer = document.getElementById("demo-role-switcher-container");
+  
+  if (topbarContainer) {
+    wrapper.style.cssText = "position:relative;font-family:system-ui,sans-serif;";
+    topbarContainer.appendChild(wrapper);
+  } else {
+    wrapper.style.cssText = "position:fixed;bottom:calc(4.5rem + env(safe-area-inset-bottom, 20px));right:20px;z-index:9999;font-family:system-ui,sans-serif;";
+    document.body.appendChild(wrapper);
+  }
 
   if (expanded) {
     let html =
-      '<div style="background:#1e1e1e;border-radius:12px;padding:8px;box-shadow:0 8px 32px rgba(0,0,0,0.35);min-width:160px;">';
+      '<div style="position:absolute;right:0;top:' + (topbarContainer ? 'calc(100% + 8px)' : 'auto') + ';bottom:' + (topbarContainer ? 'auto' : '100%') + ';margin-bottom:' + (topbarContainer ? '0' : '8px') + ';background:#1e1e1e;border-radius:12px;padding:8px;box-shadow:0 8px 32px rgba(0,0,0,0.35);min-width:180px;z-index:100000;">';
     html +=
-      '<div style="padding:4px 8px 6px;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.05em;">DEV Role Switch</div>';
+      '<div style="padding:4px 8px 6px;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.05em;">Demo Role Switcher</div>';
     ROLES.forEach(function (r) {
       const isActive = r.id === role;
       const bg = isActive ? r.color : "transparent";
@@ -62,14 +71,12 @@ function renderFloatingButton() {
     wrapper.innerHTML = html;
   } else {
     wrapper.innerHTML =
-      '<button id="dev-role-toggle" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9999px;border:none;' +
-      'background:#e57722;color:#fff;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.3);font-family:inherit;text-transform:uppercase;letter-spacing:0.03em;">' +
-      '<span style="width:8px;height:8px;border-radius:50%;background:#fff;"></span>' +
-      (roleMeta ? roleMeta.label : role) +
+      '<button id="dev-role-toggle" style="display:flex;align-items:center;gap:6px;height:40px;padding:0 16px;border-radius:9999px;border:1px solid rgba(0,0,0,0.1);' +
+      'background:#1e1e1e;color:#fff;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.15);font-family:inherit;text-transform:uppercase;letter-spacing:0.03em;transition:all 0.2s;">' +
+      '<span style="width:8px;height:8px;border-radius:50%;background:' + roleMeta.color + ';"></span>' +
+      '<span class="hidden md:inline">Demo: </span>' + (roleMeta ? roleMeta.label : role) +
       "</button>";
   }
-
-  document.body.appendChild(wrapper);
 
   if (expanded) {
     wrapper.querySelectorAll("[data-role]").forEach(function (btn) {
@@ -137,8 +144,7 @@ function switchRole(newRole) {
 }
 
 export function initRoleSwitcher(authModule) {
-  if (!import.meta.env.DEV) return;
-
+  // Removed dev only check to ensure it works in production
   window._devAuthModule = authModule;
 
   if (document.readyState === "loading") {

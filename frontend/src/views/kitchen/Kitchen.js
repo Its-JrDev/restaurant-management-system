@@ -14,6 +14,8 @@ const KITCHEN_STATUS_MAP = {
   served: "delivered",
 };
 
+let kitchenActiveTab = "new";
+
 const FROM_STATUS_MAP = {
   preparing: "pending",
   ready: "preparing",
@@ -42,12 +44,12 @@ async function moveOrder(id, newStatus) {
   }
 }
 
-function renderColumn(col) {
+function renderColumn(col, isActive) {
   const orders = kitchenOrders.filter(function (o) {
     return o.status === col.key;
   });
 
-  let html = '<div class="flex flex-col rounded-xl overflow-hidden ' + col.colBg + '">';
+  let html = '<div class="flex-col rounded-xl overflow-hidden ' + (isActive ? 'flex' : 'hidden lg:flex') + ' ' + col.colBg + '">';
   html += '<div class="flex items-center justify-between px-5 py-4">';
   html += '<span class="text-[15px] font-bold ' + col.headerColor + '">' + col.label + "</span>";
   html +=
@@ -184,9 +186,17 @@ const KitchenView = {
     html += '<span class="w-3 h-3 rounded-full bg-error-500"></span> Urgent (&gt;15 min)';
     html += "</div></div>";
 
+    html += '<div class="flex lg:hidden bg-brand-100 rounded-lg p-1 mb-4">';
+    cols.forEach(function (col) {
+      const isActive = kitchenActiveTab === col.key;
+      const count = kitchenOrders.filter(function(o) { return o.status === col.key; }).length;
+      html += '<button data-kitchen-tab="' + col.key + '" class="flex-1 py-2 text-[13px] font-bold rounded-md transition-colors ' + (isActive ? 'bg-white text-brand-800 shadow-sm' : 'text-brand-600') + '">' + col.label + ' (' + count + ')</button>';
+    });
+    html += '</div>';
+
     html += '<div class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5 min-h-0">';
     cols.forEach(function (col) {
-      html += renderColumn(col);
+      html += renderColumn(col, kitchenActiveTab === col.key);
     });
     html += "</div></div>";
 
@@ -196,7 +206,17 @@ const KitchenView = {
   init: function () {
     const el = document.getElementById("current-view");
     if (!el) return;
-    this._clickHandler = function (e) {
+    this._clickHandler = async function (e) {
+      const tabBtn = e.target.closest('[data-kitchen-tab]');
+      if (tabBtn) {
+        kitchenActiveTab = tabBtn.getAttribute('data-kitchen-tab');
+        const currentEl = document.getElementById("current-view");
+        if (currentEl) {
+          await KitchenView.render(currentEl);
+          window.createIcons();
+        }
+        return;
+      }
       const moveBtn = e.target.closest('[data-kitchen-action="move"]');
       if (moveBtn) {
         const oid = moveBtn.getAttribute("data-order-id");

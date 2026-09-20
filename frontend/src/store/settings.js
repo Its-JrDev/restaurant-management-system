@@ -1,8 +1,8 @@
 import { createStore } from "./index.js";
-import { apiGet, apiPut } from "../services/api.js";
+import { getCollection, saveCollection } from "./data/db.js";
 
 const defaults = {
-  restaurant_name: "El Fogon Caribeno",
+  restaurant_name: "El Fogón Caribeño",
   address: "",
   phone: "",
   email: "",
@@ -28,8 +28,8 @@ function mapSetting(s) {
 
 export async function loadSettings() {
   try {
-    const data = await apiGet("/api/v1/settings/");
-    settingsStore.setState({ settings: mapSetting(data), loaded: true });
+    const data = getCollection("settings");
+    settingsStore.setState({ settings: mapSetting(data || defaults), loaded: true });
   } catch {
     settingsStore.setState({ loaded: true });
   }
@@ -41,8 +41,8 @@ export function getSettings() {
 
 export async function updateSettings(data) {
   try {
-    const result = await apiPut("/api/v1/settings/", data);
-    settingsStore.setState({ settings: mapSetting(result) });
+    saveCollection("settings", data);
+    settingsStore.setState({ settings: mapSetting(data) });
     return { success: true };
   } catch (err) {
     return { success: false, error: err.message };
@@ -50,6 +50,7 @@ export async function updateSettings(data) {
 }
 
 export function resetSettings() {
+  saveCollection("settings", defaults);
   settingsStore.setState({ settings: defaults });
 }
 

@@ -1,5 +1,5 @@
 import { createStore } from "./index.js";
-import * as inventoryService from "../services/inventoryService.js";
+import { getCollection, insertItem, updateItem as dbUpdateItem } from "./data/db.js";
 
 const inventoryStore = createStore({
   items: [],
@@ -7,38 +7,61 @@ const inventoryStore = createStore({
 });
 
 export async function loadItems() {
-  const items = await inventoryService.getAllItems();
+  const items = getCollection("inventory_items");
   inventoryStore.setState({ items });
 }
 
 export async function loadLowStock() {
-  const lowStock = await inventoryService.getLowStockItems();
+  const items = getCollection("inventory_items");
+  const lowStock = items.filter(item => item.quantity <= item.min_stock);
   inventoryStore.setState({ lowStock });
 }
 
 export async function refreshItems() {
-  const items = await inventoryService.getAllItems();
+  const items = getCollection("inventory_items");
   inventoryStore.setState({ items });
 }
 
 export async function createItem(data) {
-  const result = await inventoryService.createItem(data);
-  if (result.success) {
+  try {
+    const newItem = {
+      id: "inv-" + Date.now(),
+      ...data
+    };
+    insertItem("inventory_items", newItem);
     await refreshItems();
+    return { success: true, item: newItem };
+  } catch (err) {
+    return { success: false, error: err.message };
   }
-  return result;
 }
 
 export async function updateItem(id, data) {
-  const result = await inventoryService.updateItem(id, data);
-  if (result.success) {
-    await refreshItems();
+  try {
+    const item = dbUpdateItem("inventory_items", id, data);
+    if (item) {
+      await refreshItems();
+      return { success: true, item };
+    }
+    return { success: false, error: "Item not found" };
+  } catch (err) {
+    return { success: false, error: err.message };
   }
-  return result;
 }
 
 export async function registerMovement(itemId, data) {
-  return await inventoryService.registerMovement(itemId, data);
+  try {
+    const items = getCollection("inventory_items");
+    const item = items.find(i => i.id === itemId);
+    if (!item) return { success: false, error: "Item not found" };
+
+    const newQuantity = data.type === 'in' ? item.quantity + data.quantity : item.quantity - data.quantity;
+    const updated = dbUpdateItem("inventory_items", itemId, { quantity: newQuantity });
+    await refreshItems();
+    return { success: true, item: updated };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
 }
 
 export function getState() {

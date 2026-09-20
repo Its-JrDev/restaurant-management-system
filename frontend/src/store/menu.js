@@ -1,5 +1,5 @@
 import { createStore } from "./index.js";
-import * as menuService from "../services/menuService.js";
+import { getCollection } from "./data/db.js";
 
 const menuStore = createStore({
   products: [],
@@ -11,12 +11,12 @@ const menuStore = createStore({
 });
 
 export async function loadProducts() {
-  const all = await menuService.getAllProducts();
+  const all = getCollection("menu_items");
   menuStore.setState({ products: all, filteredProducts: all });
 }
 
 export async function loadCategories() {
-  const cats = await menuService.getAllCategories();
+  const cats = getCollection("categories");
   menuStore.setState({ categories: cats });
 }
 
@@ -28,7 +28,22 @@ export async function applyFilters({ category, available, search } = {}) {
     search: search !== undefined ? search : current.search,
   };
 
-  const filtered = await menuService.filterProducts(filters);
+  const all = getCollection("menu_items");
+  let filtered = all;
+
+  if (filters.category) {
+    filtered = filtered.filter(p => p.category_id === filters.category);
+  }
+  if (filters.search) {
+    const q = filters.search.toLowerCase();
+    filtered = filtered.filter(p => p.name.toLowerCase().includes(q) || (p.description && p.description.toLowerCase().includes(q)));
+  }
+  // If there's an 'available' filter (boolean or string representation)
+  if (filters.available !== "") {
+    const isAvail = filters.available === true || filters.available === "true";
+    filtered = filtered.filter(p => p.is_available === isAvail || p.available === isAvail);
+  }
+
   menuStore.setState({ filters, filteredProducts: filtered });
 }
 
@@ -45,14 +60,14 @@ export function getFilteredProducts() {
 }
 
 export async function getProductById(id) {
-  return await menuService.getProductById(id);
+  const all = getCollection("menu_items");
+  return all.find(p => p.id === id) || null;
 }
 
 export async function refreshProducts() {
-  const all = await menuService.getAllProducts();
-  const filters = menuStore.getState().filters;
-  const filtered = await menuService.filterProducts(filters);
-  menuStore.setState({ products: all, filteredProducts: filtered });
+  const all = getCollection("menu_items");
+  menuStore.setState({ products: all });
+  await applyFilters();
 }
 
 export function getState() {

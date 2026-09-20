@@ -269,7 +269,7 @@ function renderNewOrder(container) {
   });
   html += "</div></div>";
 
-  html += '<div class="w-[340px] shrink-0 overflow-y-auto">';
+  html += '<div class="lg:w-[340px] lg:shrink-0 lg:h-full lg:overflow-y-auto w-0">';
   html += CartPanel();
   html += "</div></div>";
 
@@ -544,7 +544,8 @@ function renderOrderDetail(container, orderId) {
       '<button data-action="save-edit" class="inline-flex items-center justify-center gap-2 font-semibold bg-primary-600 text-white border border-primary-600 hover:bg-primary-700 h-8 px-3 text-[13px] rounded-md transition-all cursor-pointer"><i data-lucide="check" class="w-4 h-4"></i> Done</button>';
     html += "</div>";
   } else {
-    html += '<table class="w-full border-collapse">';
+    html += '<div class="overflow-x-auto">';
+    html += '<table class="w-full border-collapse min-w-[300px]">';
     html += "<thead><tr>";
     html +=
       '<th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-brand-700 border-b-2 border-brand-200 bg-brand-50">Item</th>';
@@ -573,7 +574,7 @@ function renderOrderDetail(container, orderId) {
         "</td>";
       html += "</tr>";
     });
-    html += "</tbody></table>";
+    html += "</tbody></table></div>";
     const sub = displayOrder.total / 1.1;
     const tax = displayOrder.total - sub;
     html += '<div class="flex justify-end gap-6 mt-4 pt-4 border-t border-brand-200">';

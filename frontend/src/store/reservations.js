@@ -1,5 +1,5 @@
 import { createStore } from "./index.js";
-import * as reservationService from "../services/reservationService.js";
+import { getCollection } from "./data/db.js";
 
 const reservationsStore = createStore({
   reservations: [],
@@ -10,7 +10,7 @@ const reservationsStore = createStore({
 });
 
 export async function loadReservations() {
-  const all = await reservationService.getAllReservations();
+  const all = getCollection("reservations");
   reservationsStore.setState({ reservations: all, filteredReservations: all });
 }
 
@@ -22,7 +22,24 @@ export async function applyFilters({ date, status, search } = {}) {
     search: search !== undefined ? search : current.search,
   };
 
-  const filtered = await reservationService.filterReservations(filters);
+  const all = getCollection("reservations");
+  let filtered = all;
+
+  if (filters.date) {
+    filtered = filtered.filter(r => r.reservation_date && r.reservation_date.startsWith(filters.date));
+  }
+  if (filters.status) {
+    filtered = filtered.filter(r => r.status === filters.status);
+  }
+  if (filters.search) {
+    const q = filters.search.toLowerCase();
+    filtered = filtered.filter(r => 
+      (r.guest_name && r.guest_name.toLowerCase().includes(q)) || 
+      (r.id && r.id.toLowerCase().includes(q)) ||
+      (r.guest_phone && r.guest_phone.toLowerCase().includes(q))
+    );
+  }
+
   reservationsStore.setState({ filters, filteredReservations: filtered });
 }
 
@@ -39,18 +56,19 @@ export function getFilteredReservations() {
 }
 
 export async function getReservationByCode(code) {
-  return await reservationService.getReservationByCode(code);
+  const all = getCollection("reservations");
+  return all.find(r => r.id === code) || null;
 }
 
 export async function getReservationsByUser(userId) {
-  return await reservationService.getReservationsByUser(userId);
+  const all = getCollection("reservations");
+  return all.filter(r => r.customer_id === userId);
 }
 
 export async function refreshReservations() {
-  const all = await reservationService.getAllReservations();
-  const filters = reservationsStore.getState().filters;
-  const filtered = await reservationService.filterReservations(filters);
-  reservationsStore.setState({ reservations: all, filteredReservations: filtered });
+  const all = getCollection("reservations");
+  reservationsStore.setState({ reservations: all });
+  await applyFilters();
 }
 
 export function getState() {

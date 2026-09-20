@@ -1,5 +1,5 @@
 import { createStore } from "./index.js";
-import * as paymentService from "../services/paymentService.js";
+import { getCollection } from "./data/db.js";
 
 const paymentsStore = createStore({
   payments: [],
@@ -10,7 +10,7 @@ const paymentsStore = createStore({
 });
 
 export async function loadPayments() {
-  const all = await paymentService.getAllPayments();
+  const all = getCollection("payments");
   paymentsStore.setState({ payments: all, filteredPayments: all });
 }
 
@@ -22,7 +22,21 @@ export async function applyFilters({ status, search, date } = {}) {
     date: date !== undefined ? date : current.date,
   };
 
-  const filtered = await paymentService.filterPayments(filters);
+  const all = getCollection("payments");
+  let filtered = all;
+
+  if (filters.status) {
+    filtered = filtered.filter(p => p.status === filters.status);
+  }
+  if (filters.search) {
+    const q = filters.search.toLowerCase();
+    filtered = filtered.filter(p => p.id.toLowerCase().includes(q) || (p.order_id && p.order_id.toLowerCase().includes(q)));
+  }
+  if (filters.date) {
+    // exact date match ignoring time
+    filtered = filtered.filter(p => p.created_at && p.created_at.startsWith(filters.date));
+  }
+
   paymentsStore.setState({ filters, filteredPayments: filtered });
 }
 
@@ -39,14 +53,14 @@ export function getFilteredPayments() {
 }
 
 export async function getPaymentById(id) {
-  return await paymentService.getPaymentById(id);
+  const all = getCollection("payments");
+  return all.find(p => p.id === id) || null;
 }
 
 export async function refreshPayments() {
-  const all = await paymentService.getAllPayments();
-  const filters = paymentsStore.getState().filters;
-  const filtered = await paymentService.filterPayments(filters);
-  paymentsStore.setState({ payments: all, filteredPayments: filtered });
+  const all = getCollection("payments");
+  paymentsStore.setState({ payments: all });
+  await applyFilters();
 }
 
 export function getState() {

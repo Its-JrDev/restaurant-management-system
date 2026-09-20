@@ -1,6 +1,4 @@
-import { apiGet, apiPost, apiPut, apiDelete } from "../services/api.js";
-import * as menuService from "../services/menuService.js";
-import * as locationService from "../services/locationService.js";
+import { getCollection, insertItem, updateItem as dbUpdateItem, deleteItem as dbDeleteItem } from "./data/db.js";
 
 export let menuItems = [];
 export let allOrders = [];
@@ -43,19 +41,19 @@ const STATUS_MAP_TO_FRONTEND = {
 export async function loadUsers() {
   if (_usersLoaded) return;
   try {
-    const users = await apiGet("/api/v1/users/");
+    const users = getCollection("users");
     users.forEach(function (u) {
       _userMap[u.id] = u.full_name || u.username;
     });
     _usersLoaded = true;
   } catch {
-    // ignore - userMap stays empty
+    // ignore
   }
 }
 
 export async function loadMenuItems() {
-  const products = await menuService.getAllProducts();
-  const categories = await menuService.getAllCategories();
+  const products = getCollection("menu_items");
+  const categories = getCollection("categories");
   menuItems = products
     .map(function (product) {
       const category = categories.find(function (c) {
@@ -65,7 +63,7 @@ export async function loadMenuItems() {
         id: product.id,
         name: product.name,
         price: product.price,
-        available: product.available,
+        available: product.available !== false && product.is_available !== false,
         cat: category ? category.name : "Other",
         emoji: product.image_url || null,
       };
@@ -80,14 +78,16 @@ export async function loadOrders() {
   try {
     await loadUsers();
     if (!_menuLoaded) await loadMenuItems();
-    const orders = await apiGet("/api/v1/orders/?limit=50");
+    const orders = getCollection("orders");
+    const orderItems = getCollection("order_items");
     allOrders = orders.map(function (o) {
       const serverName = _userMap[o.waiter_id] || o.waiter_id || "";
+      const oItems = orderItems.filter(oi => oi.order_id === o.id);
       return {
         id: typeof o.id === "string" ? o.id.slice(0, 8) : o.id,
         fullId: o.id,
         table: o.table_id,
-        items: (o.order_items || []).map(function (oi) {
+        items: oItems.map(function (oi) {
           const matched = menuItems.find(function (m) {
             return String(m.id) === String(oi.menu_item_id);
           });
@@ -119,7 +119,7 @@ export async function loadOrders() {
 
 export async function loadKitchenOrders() {
   try {
-    const orders = await apiGet("/api/v1/kitchen/");
+    const orders = getCollection("kitchen_orders");
     const parentStatuses = {};
     allOrders.forEach(function (o) {
       parentStatuses[o.fullId] = o.status;
@@ -181,14 +181,16 @@ export async function loadKitchenOrders() {
 
 export async function loadTables() {
   try {
-    const items = await apiGet("/api/v1/tables/");
+    const items = getCollection("tables");
+    const locs = getCollection("locations");
     tables = items.map(function (t, index) {
+      const loc = locs.find(l => l.id === t.location_id);
       return {
         id: t.id,
         number: t.number || index + 1,
         seats: t.capacity,
         area: t.location_id || null,
-        areaName: t.location_ref ? t.location_ref.name : "",
+        areaName: loc ? loc.name : "",
         status: t.status || "available",
         info: t.status === "available" ? "Free" : t.status === "reserved" ? "Reserved" : "Occupied",
         timer: null,
@@ -200,7 +202,7 @@ export async function loadTables() {
 }
 
 export async function loadAreas() {
-  const locs = await locationService.getAllLocations();
+  const locs = getCollection("locations");
   areas.length = 0;
   locs.forEach(function (loc) {
     areas.push({ id: loc.id, name: loc.name, icon: "map-pin" });
@@ -209,13 +211,16 @@ export async function loadAreas() {
 
 export async function createTable(tableData) {
   try {
-    const result = await apiPost("/api/v1/tables/", {
+    const newTable = {
+      id: "table-" + Date.now(),
       number: tableData.number,
       capacity: tableData.capacity,
       location_id: tableData.location_id || null,
-    });
+      status: "available"
+    };
+    insertItem("tables", newTable);
     await loadTables();
-    return { success: true, table: result };
+    return { success: true, table: newTable };
   } catch (err) {
     return { success: false, error: err.message };
   }
@@ -223,13 +228,13 @@ export async function createTable(tableData) {
 
 export async function updateTable(tableId, data) {
   try {
-    const result = await apiPut("/api/v1/tables/" + tableId, {
+    const updated = dbUpdateItem("tables", tableId, {
       capacity: data.capacity,
       status: data.status,
       location_id: data.location_id,
     });
     await loadTables();
-    return { success: true, table: result };
+    return { success: true, table: updated };
   } catch (err) {
     return { success: false, error: err.message };
   }
@@ -237,7 +242,7 @@ export async function updateTable(tableId, data) {
 
 export async function deleteTable(tableId) {
   try {
-    await apiDelete("/api/v1/tables/" + tableId);
+    dbDeleteItem("tables", tableId);
     await loadTables();
     return { success: true };
   } catch (err) {
@@ -246,24 +251,49 @@ export async function deleteTable(tableId) {
 }
 
 export async function createArea(areaData) {
-  return locationService.createLocation(areaData);
+  try {
+    const newLoc = { id: "loc-" + Date.now(), name: areaData.name };
+    insertItem("locations", newLoc);
+    await loadAreas();
+    return { success: true, area: newLoc };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
 }
 
 export async function updateArea(areaId, areaData) {
-  return locationService.updateLocation(areaId, areaData);
+  try {
+    const updated = dbUpdateItem("locations", areaId, areaData);
+    await loadAreas();
+    return { success: true, area: updated };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
 }
 
 export async function deleteArea(areaId) {
-  return locationService.deleteLocation(areaId);
+  try {
+    dbDeleteItem("locations", areaId);
+    await loadAreas();
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
 }
 
 export async function createOrder(tableId, reservationId) {
   try {
-    const body = { table_id: tableId };
-    if (reservationId) body.reservation_id = reservationId;
-    const result = await apiPost("/api/v1/orders/", body);
+    const order = {
+      id: "order-" + Date.now(),
+      table_id: tableId,
+      reservation_id: reservationId || null,
+      status: "pending",
+      total: 0,
+      created_at: new Date().toISOString()
+    };
+    insertItem("orders", order);
     await loadOrders();
-    return { success: true, order: result };
+    return { success: true, order: order };
   } catch (err) {
     return { success: false, error: err.message };
   }
@@ -271,14 +301,40 @@ export async function createOrder(tableId, reservationId) {
 
 export async function addOrderItem(orderId, menuItemId, quantity, notes) {
   try {
-    const body = {
+    const mi = getCollection("menu_items").find(m => m.id === menuItemId);
+    const orderItem = {
+      id: "oi-" + Date.now(),
+      order_id: orderId,
       menu_item_id: menuItemId,
       quantity: quantity || 1,
+      unit_price: mi ? mi.price : 0,
+      subtotal: (mi ? mi.price : 0) * (quantity || 1),
+      notes: notes || null
     };
-    if (notes) body.notes = notes;
-    const result = await apiPost("/api/v1/orders/" + orderId + "/items", body);
+    insertItem("order_items", orderItem);
+    
+    // Update order total
+    const order = getCollection("orders").find(o => o.id === orderId);
+    if (order) {
+      dbUpdateItem("orders", orderId, { total: order.total + orderItem.subtotal });
+    }
+
+    // Add to kitchen orders
+    if (mi) {
+      insertItem("kitchen_orders", {
+        id: "ko-" + Date.now(),
+        order_id: orderId,
+        menu_item_name: mi.name,
+        quantity: quantity || 1,
+        status: "pending",
+        notes: notes || null,
+        created_at: new Date().toISOString()
+      });
+    }
+
     await loadOrders();
-    return { success: true, order: result };
+    await loadKitchenOrders();
+    return { success: true, order: order };
   } catch (err) {
     return { success: false, error: err.message };
   }
@@ -288,7 +344,7 @@ export async function updateOrderStatus(orderId, frontendStatus) {
   const backendStatus = STATUS_MAP_TO_BACKEND[frontendStatus];
   if (!backendStatus) return { success: false, error: "Cannot persist status: " + frontendStatus };
   try {
-    const result = await apiPut("/api/v1/orders/" + orderId + "/status", { status: backendStatus });
+    const result = dbUpdateItem("orders", orderId, { status: backendStatus });
     await loadOrders();
     await loadKitchenOrders();
     window.dispatchEvent(new CustomEvent("orders:updated"));
@@ -300,7 +356,7 @@ export async function updateOrderStatus(orderId, frontendStatus) {
 
 export async function deleteOrder(orderId) {
   try {
-    await apiDelete("/api/v1/orders/" + orderId);
+    dbDeleteItem("orders", orderId);
     await loadOrders();
     await loadKitchenOrders();
     window.dispatchEvent(new CustomEvent("orders:updated"));
@@ -312,7 +368,7 @@ export async function deleteOrder(orderId) {
 
 export async function updateKitchenOrderStatus(kitchenOrderId, newStatus) {
   try {
-    const result = await apiPut("/api/v1/kitchen/" + kitchenOrderId + "/status", {
+    const result = dbUpdateItem("kitchen_orders", kitchenOrderId, {
       status: newStatus,
     });
     await loadOrders();

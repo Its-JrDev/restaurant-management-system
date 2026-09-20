@@ -542,7 +542,8 @@ function renderDetail(el) {
       (order.time || "\u2014") +
       "</div></div>";
     html += "</div>";
-    html += '<table class="w-full border-collapse">';
+    html += '<div class="overflow-x-auto">';
+    html += '<table class="w-full border-collapse min-w-[300px]">';
     html += "<thead><tr>";
     html +=
       '<th class="px-4 py-3 text-left text-xs font-bold text-brand-700 uppercase tracking-wider border-b-2 border-brand-200 bg-brand-50">Item</th>';
@@ -562,7 +563,7 @@ function renderDetail(el) {
         ((i.price || 0) * i.qty).toFixed(2) +
         "</td></tr>";
     });
-    html += "</tbody></table>";
+    html += "</tbody></table></div>";
     html += "</div></div>";
   } else if (t.status === "occupied") {
     html +=
