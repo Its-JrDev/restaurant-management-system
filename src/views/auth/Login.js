@@ -191,14 +191,18 @@ export function init() {
   initPasswordToggles();
 
   // Initialize Lucide icons
-  createIcons({
-    icons: {
-      Eye,
-      EyeOff,
-      Sun,
-      Moon,
-    },
-  });
+  if (typeof window.createIcons === "function") {
+    window.createIcons();
+  } else {
+    createIcons({
+      icons: {
+        Eye,
+        EyeOff,
+        Sun,
+        Moon,
+      },
+    });
+  }
 
   // Theme toggle button
   const themeBtn = document.getElementById("themeToggleBtn");
@@ -207,7 +211,14 @@ export function init() {
       toggleTheme();
       const newDark = isDark();
       themeBtn.innerHTML = `<i data-lucide="${newDark ? "sun" : "moon"}" class="w-[18px] h-[18px]"></i>`;
-      createIcons({ icons: { Sun, Moon } });
+      if (typeof window.createIcons === "function") {
+        window.createIcons();
+      } else {
+        createIcons({
+          nodes: themeBtn.querySelectorAll("[data-lucide]"),
+          icons: { Sun, Moon },
+        });
+      }
       window.dispatchEvent(
         new CustomEvent("themechange", { detail: { theme: newDark ? "dark" : "light" } })
       );
