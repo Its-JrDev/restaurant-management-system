@@ -1,4 +1,6 @@
-# Documentation Index — Restaurant Management System
+# Documentation Index — Restaurant Management System (Portfolio Demo)
+
+> **Note:** This documentation reflects the original Full-Stack architecture of the project. The live version of this repository is a **Frontend-only Portfolio Demo** where the Python backend has been completely removed in favor of a local DB wrapper. All `backend/` documentation is preserved strictly for historical context.
 
 This is the entry point for the project documentation. All files live under `docs/` unless noted otherwise. Root-level docs (`README.md`, `structure-explanation.md`) sit at the repository root.
 
