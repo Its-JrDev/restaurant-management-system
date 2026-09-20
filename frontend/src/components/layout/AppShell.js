@@ -166,7 +166,7 @@ const AppShell = {
           AppShell.renderSidebarHeader(sidebarHeader);
         }
         window.dispatchEvent(new CustomEvent("themechange", { detail: { theme: nextTheme } }));
-        window.dispatchEvent(new Event("hashchange"));
+        // hashchange removed to avoid destructive re-rendering
       });
     }
   },
