@@ -7,6 +7,10 @@ export function getTheme() {
 export function setTheme(theme) {
   localStorage.setItem(THEME_KEY, theme);
   document.documentElement.setAttribute("data-theme", theme);
+  const metaThemeColor = document.getElementById("metaThemeColor");
+  if (metaThemeColor) {
+    metaThemeColor.setAttribute("content", theme === "dark" ? "#0d1b2a" : "#fcedd7");
+  }
 }
 
 export function toggleTheme() {
