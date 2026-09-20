@@ -8,7 +8,9 @@ Welcome to the documentation for the **Frontend-only Demo** of the Restaurant Ma
 |---|---|
 | [architecture.md](architecture.md) | High-level overview of the SPA, routing, and data layer |
 | [state-management.md](state-management.md) | Explanation of the Pub/Sub store and LocalStorage DB wrapper |
-| [ui-ux.md](ui-ux.md) | Design system, responsive logic, and theming |
+| [ui-ux.md](ui-ux.md) | Overview of responsive logic, theming, and role-based UX |
+| [ui/design-system/README.md](ui/design-system/README.md) | Design tokens, color palettes, and typography |
+| [ui/feedback-system/README.md](ui/feedback-system/README.md) | Toast, skeleton, and spinner primitives |
 
 ## Background
 
