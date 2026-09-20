@@ -1,3 +1,4 @@
+import "../../utils/chartSetup.js";
 import { getDailySales } from "../../services/reportService.js";
 import { isDark } from "../../utils/theme.js";
 

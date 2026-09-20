@@ -5,19 +5,27 @@ const SESSION_KEY = "rms_session";
 
 function getSession() {
   try {
-    const raw = localStorage.getItem(SESSION_KEY);
+    let raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) raw = sessionStorage.getItem(SESSION_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
   }
 }
 
-function saveSession(user) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+function saveSession(user, keepSignedIn = true) {
+  if (keepSignedIn) {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+    sessionStorage.removeItem(SESSION_KEY);
+  } else {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(user));
+    localStorage.removeItem(SESSION_KEY);
+  }
 }
 
 function clearSession() {
   localStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(SESSION_KEY);
 }
 
 const savedUser = getSession();
@@ -28,9 +36,13 @@ const authStore = createStore({
   error: null,
 });
 
-export async function login(username, password) {
+export async function login(identifier, password, keepSignedIn = true) {
   const users = getCollection("users");
-  const user = users.find(u => u.username === username); // Fake password check
+  const lowerId = identifier.toLowerCase();
+  const user = users.find(u => 
+    u.username.toLowerCase() === lowerId || 
+    (u.email && u.email.toLowerCase() === lowerId)
+  ); // Fake password check
   
   if (user) {
     const loggedUser = {
@@ -42,7 +54,7 @@ export async function login(username, password) {
       is_active: user.is_active !== false,
       createdAt: user.created_at || new Date().toISOString(),
     };
-    saveSession(loggedUser);
+    saveSession(loggedUser, keepSignedIn);
     authStore.setState({
       user: loggedUser,
       isAuthenticated: true,

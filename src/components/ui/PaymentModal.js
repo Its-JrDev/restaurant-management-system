@@ -17,7 +17,7 @@ class PaymentModal {
       { value: "", label: "Select an order..." },
       ...unpaidOrders.map((order) => ({
         value: order.fullId,
-        label: `Order #${order.id} - Table ${order.table} ($${order.total.toFixed(2)})`,
+        label: `Order #${order.id} - Table ${order.tableNumber || order.table} ($${order.total.toFixed(2)})`,
       })),
     ];
 

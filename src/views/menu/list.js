@@ -1,7 +1,6 @@
 import * as menuStore from "../../store/menu.js";
 import * as menuService from "../../services/menuService.js";
 import { initMockCategories, initMockProducts } from "../../services/menuService.js";
-import { currentUser } from "../../store/auth.js";
 import { hasAnyRole } from "../../utils/roleContext.js";
 import { productModal } from "../../components/ui/ProductModal.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
@@ -71,6 +70,10 @@ function getFiltered() {
 async function renderList(el) {
   const products = getFiltered();
   const categories = await menuService.getAllCategories();
+  const categoryMap = {};
+  categories.forEach(function (cat) {
+    categoryMap[cat.id] = cat.name;
+  });
 
   let html = '<div class="space-y-5">';
 
@@ -150,8 +153,7 @@ async function renderList(el) {
     html += "</div>";
   } else {
     for (const product of products) {
-      const category = await menuService.getCategoryById(product.category_id);
-      const categoryName = category ? category.name : "Unknown";
+      const categoryName = categoryMap[product.category_id] || "Unknown";
       const emoji = product.image_url || getCategoryEmoji(product.category_id);
 
       html +=
@@ -213,7 +215,7 @@ async function renderDetail(el, productId) {
   const category = await menuService.getCategoryById(product.category_id);
   const categoryName = category ? category.name : "Unknown";
   const emoji = product.image_url || getCategoryEmoji(product.category_id);
-  const canDelete = currentUser && currentUser.role === "admin";
+  const canDelete = hasAnyRole("admin");
 
   let html = '<div class="space-y-5">';
 

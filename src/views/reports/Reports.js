@@ -1,3 +1,4 @@
+import "../../utils/chartSetup.js";
 import { getSalesReport, getTopProducts, getDailySales } from "../../services/reportService.js";
 import { exportToCSV } from "../../utils/csvExport.js";
 import { withLoading, Skeletons } from "../../utils/withLoading.js";

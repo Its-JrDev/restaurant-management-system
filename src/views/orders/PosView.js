@@ -8,7 +8,6 @@ import {
   LIFECYCLE,
   canTransition,
   recalcOrder,
-  currentRole,
   loadOrders,
   loadMenuItems,
   loadTables,
@@ -18,8 +17,10 @@ import {
   deleteOrder,
 } from "../../store/posData.js";
 import CartPanel, { loadDraftItems } from "../../components/pos/CartPanel.js";
+import { paymentModal } from "../../components/ui/PaymentModal.js";
+import * as paymentService from "../../services/paymentService.js";
 import { exportToCSV } from "../../utils/csvExport.js";
-import { hasAnyRole } from "../../utils/roleContext.js";
+import { hasAnyRole, getRole } from "../../utils/roleContext.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
 import { toast } from "../../components/ui/ToastManager.js";
 import { withLoading, Skeletons } from "../../utils/withLoading.js";
@@ -156,11 +157,11 @@ function renderOrderList(container) {
   orders.forEach(function (order, i) {
     const bg = i % 2 === 0 ? "bg-white" : "bg-brand-50/50";
     const st = statusBadge(order.status);
-    const canCancel = canTransition(currentRole, order.status, "cancelled");
+    const canCancel = canTransition(getRole(), order.status, "cancelled");
     const canDelete =
-      currentRole === "admin" && (order.status === "completed" || order.status === "cancelled");
+      getRole() === "admin" && (order.status === "completed" || order.status === "cancelled");
     const canDropDraft =
-      order.status === "draft" && (currentRole === "admin" || order.createdBy === currentRole);
+      order.status === "draft" && (getRole() === "admin" || order.createdBy === getRole());
     html += '<tr class="' + bg + ' hover:bg-brand-50 transition-colors">';
     html += '<td class="px-4 py-3 font-semibold text-primary-700">#' + order.id + "</td>";
     const orderTable = order.table
@@ -203,16 +204,9 @@ function renderOrderList(container) {
 }
 
 function renderNewOrder(container) {
-  const categories = [
-    "All",
-    "Main Course",
-    "Pizza",
-    "Salads",
-    "Burgers",
-    "Appetizers",
-    "Desserts",
-    "Drinks",
-  ];
+  const categories = ["All"].concat(
+    Array.from(new Set(menuItems.map(function (i) { return i.cat; })))
+  );
   const activeCat = "All";
 
   let html = "";
@@ -301,15 +295,18 @@ function renderOrderDetail(container, orderId) {
     ["draft", "new", "preparing", "ready", "served"].indexOf(displayOrder.status) !== -1;
   const canEditItems =
     isDraft &&
-    (currentRole === "admin" || displayOrder.createdBy === currentRole) &&
-    currentRole !== "chef";
+    (getRole() === "admin" || displayOrder.createdBy === getRole()) &&
+    getRole() !== "chef";
   const canDropDraft =
     isDraft &&
-    (currentRole === "admin" || displayOrder.createdBy === currentRole) &&
-    currentRole !== "chef";
-  const canCancelOrder = isActive && !isDraft && currentRole === "admin";
-  const canDelete = isClosed && currentRole === "admin";
-  const canEditNote = currentRole !== "chef";
+    (getRole() === "admin" || displayOrder.createdBy === getRole()) &&
+    getRole() !== "chef";
+  const canCancelOrder = isActive && !isDraft && getRole() === "admin";
+  const canDelete = isClosed && getRole() === "admin";
+  const canEditNote = getRole() !== "chef";
+  const canCharge =
+    displayOrder.status === "served" &&
+    (getRole() === "admin" || getRole() === "cashier");
 
   const lifecycleIdx = LIFECYCLE.indexOf(displayOrder.status);
 
@@ -323,7 +320,7 @@ function renderOrderDetail(container, orderId) {
 
   const transitions = [];
   if (!isClosed && !isCancelled) {
-    if (currentRole === "admin") {
+    if (getRole() === "admin") {
       if (lifecycleIdx > 0 && !isDraft)
         transitions.push({
           to: LIFECYCLE[lifecycleIdx - 1],
@@ -341,17 +338,17 @@ function renderOrderDetail(container, orderId) {
         label: "Cancel",
         btnCls: "bg-error-600 text-white border border-error-600 hover:bg-error-700",
       });
-    } else if (currentRole === "waiter") {
+    } else if (getRole() === "waiter") {
       const from = displayOrder.status;
       const nextStatus = LIFECYCLE[lifecycleIdx + 1];
-      if (nextStatus && canTransition(currentRole, from, nextStatus)) {
+      if (nextStatus && canTransition(getRole(), from, nextStatus)) {
         transitions.push({
           to: nextStatus,
           label: "Next \u2192",
           btnCls: "bg-primary-600 text-white border border-primary-600 hover:bg-primary-700",
         });
       }
-    } else if (currentRole === "chef") {
+    } else if (getRole() === "chef") {
       if (lifecycleIdx < LIFECYCLE.length - 1 && lifecycleIdx >= 1 && lifecycleIdx + 1 <= 3) {
         const tLabels = { 1: "Start Preparing", 2: "Mark Ready", 3: "Served" };
         transitions.push({
@@ -491,16 +488,9 @@ function renderOrderDetail(container, orderId) {
       html += "</div>";
     });
 
-    const editCats = [
-      "All",
-      "Appetizers",
-      "Main Course",
-      "Burgers",
-      "Pizza",
-      "Salads",
-      "Drinks",
-      "Desserts",
-    ];
+    const editCats = ["All"].concat(
+      Array.from(new Set(menuItems.map(function (i) { return i.cat; })))
+    );
     html += '<div class="mt-4 pt-4 border-t-2 border-dashed border-brand-200">';
     html +=
       '<h4 class="text-[13px] font-bold text-brand-700 mb-3"><i data-lucide="plus-circle" class="w-4 h-4 inline-block align-middle mr-1"></i> Add Items</h4>';
@@ -617,9 +607,15 @@ function renderOrderDetail(container, orderId) {
   }
   html += "</div></div></div>";
 
-  const hasActions = transitions.length > 0 || canDropDraft || canCancelOrder || canDelete;
+  const hasActions =
+    transitions.length > 0 || canDropDraft || canCancelOrder || canDelete || canCharge;
   if (hasActions) {
     html += '<div class="flex gap-3 p-5 bg-brand-50 border-t border-brand-200">';
+    if (canCharge)
+      html +=
+        '<button data-action="charge-order" data-order-id="' +
+        displayOrder.fullId +
+        '" class="inline-flex items-center justify-center gap-2 font-semibold bg-success-600 text-white border border-success-600 hover:bg-success-700 h-8 px-3 text-[13px] rounded-md transition-all cursor-pointer"><i data-lucide="credit-card" class="w-4 h-4"></i> Charge Order</button>';
     if (canDropDraft)
       html +=
         '<button data-action="drop-draft" data-order-id="' +
@@ -697,7 +693,7 @@ function setupOrderListEvents(container) {
       const order = allOrders.find(function (o) {
         return o.id === cid;
       });
-      if (order && canTransition(currentRole, order.status, "cancelled")) {
+      if (order && canTransition(getRole(), order.status, "cancelled")) {
         if (order.fullId) {
           await updateOrderStatus(order.fullId, "cancelled");
         } else {
@@ -712,7 +708,7 @@ function setupOrderListEvents(container) {
     const delBtn = e.target.closest('[data-action="delete-order"]');
     if (delBtn) {
       const did = delBtn.getAttribute("data-order-id");
-      if (currentRole === "admin") {
+      if (getRole() === "admin") {
         const order = allOrders.find(function (o) {
           return o.id === did;
         });
@@ -876,7 +872,7 @@ function setupOrderDetailEvents(container, order) {
       const o = allOrders.find(function (ord) {
         return ord.id === oid;
       });
-      if (o && canTransition(currentRole, o.status, target)) {
+      if (o && canTransition(getRole(), o.status, target)) {
         if (o.fullId) {
           await updateOrderStatus(o.fullId, target);
         } else {
@@ -888,13 +884,35 @@ function setupOrderDetailEvents(container, order) {
       return;
     }
 
+    const chargeBtn = e.target.closest('[data-action="charge-order"]');
+    if (chargeBtn) {
+      const data = await paymentModal.show();
+      if (data) {
+        const result = await paymentService.createPayment({
+          order_id: data.orderId,
+          amount: data.amount,
+          method: data.method,
+        });
+        if (result.success) {
+          toast.success("Payment received", "$" + data.amount + " via " + data.method);
+          await updateOrderStatus(data.orderId, "completed");
+          subView = "orders";
+          renderOrderList(container);
+          window.createIcons();
+        } else {
+          toast.error("Payment Failed", result.error || "Unknown error");
+        }
+      }
+      return;
+    }
+
     const cancelBtn = e.target.closest('[data-action="cancel-order"]');
     if (cancelBtn) {
       const cid = cancelBtn.getAttribute("data-order-id");
       const co = allOrders.find(function (ord) {
         return ord.id === cid;
       });
-      if (co && canTransition(currentRole, co.status, "cancelled")) {
+      if (co && canTransition(getRole(), co.status, "cancelled")) {
         if (co.fullId) {
           await updateOrderStatus(co.fullId, "cancelled");
         } else {
@@ -924,7 +942,7 @@ function setupOrderDetailEvents(container, order) {
     const delBtn = e.target.closest('[data-action="delete-order"]');
     if (delBtn) {
       const delId = delBtn.getAttribute("data-order-id");
-      if (currentRole === "admin") {
+      if (getRole() === "admin") {
         const order = allOrders.find(function (o) {
           return o.id === delId;
         });

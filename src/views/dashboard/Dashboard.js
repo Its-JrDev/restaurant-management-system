@@ -1,8 +1,8 @@
 import WelcomeBanner from "../../components/ui/WelcomeBanner.js";
 import StatCard from "../../components/ui/StatCard.js";
 import SalesChart from "../../components/dashboard/SalesChart.js";
-import { allOrders, loadOrders } from "../../store/posData.js";
-import { apiGet } from "../../services/api.js";
+import { allOrders, loadOrders, tables, loadTables } from "../../store/posData.js";
+import { loadTodayStats, getState as getReportsState } from "../../store/reports.js";
 import { hasAnyRole } from "../../utils/roleContext.js";
 import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
@@ -10,20 +10,22 @@ const Dashboard = {
   render: async function (el) {
     const user = window.userData || { name: "Admin", initials: "MC" };
 
-    let stats = { revenue: 0, orders: 0, active_tables: 0, total_tables: 0, reservations: 0 };
-    let tableStatus = { available: 0, occupied: 0, reserved: 0, total: 0 };
+    await loadTodayStats();
+    const stats = getReportsState().todayStats || {
+      revenue: 0,
+      orders: 0,
+      active_tables: 0,
+      total_tables: 0,
+      reservations: 0,
+    };
 
-    try {
-      stats = await apiGet("/api/v1/reports/today-stats");
-    } catch {
-      /* silent */
-    }
-
-    try {
-      tableStatus = await apiGet("/api/v1/tables/status");
-    } catch {
-      /* silent */
-    }
+    await loadTables();
+    const tableStatus = {
+      available: tables.filter((t) => t.status === "available").length,
+      occupied: tables.filter((t) => t.status === "occupied").length,
+      reserved: tables.filter((t) => t.status === "reserved").length,
+      total: tables.length,
+    };
 
     await loadOrders();
 
@@ -172,7 +174,7 @@ const Dashboard = {
       const zebra = i % 2 === 0 ? "bg-white" : "bg-brand-50/50";
       html += '<tr class="' + zebra + ' cursor-pointer border-b border-brand-100">';
       html += '<td class="px-4 py-3 font-semibold text-brand-800">#' + o.id + "</td>";
-      html += '<td class="px-4 py-3">Table ' + (o.table ? o.table.slice(0, 8) : "") + "</td>";
+      html += '<td class="px-4 py-3">Table ' + (o.tableNumber || "—") + "</td>";
       html += '<td class="px-4 py-3">' + (o.server || "") + "</td>";
       html += '<td class="px-4 py-3">' + o.items.length + " items</td>";
       html += '<td class="px-4 py-3 font-semibold text-brand-800">$' + o.total.toFixed(2) + "</td>";

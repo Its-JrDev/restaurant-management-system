@@ -1,7 +1,6 @@
 import * as paymentsStore from "../../store/payments.js";
 import * as paymentService from "../../services/paymentService.js";
 import { allOrders, loadOrders } from "../../store/posData.js";
-import { currentUser } from "../../store/auth.js";
 import { hasAnyRole } from "../../utils/roleContext.js";
 import { paymentModal } from "../../components/ui/PaymentModal.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
@@ -89,7 +88,7 @@ function getFiltered() {
 
 function getOrderById(orderId) {
   return allOrders.find(function (o) {
-    return o.id === orderId;
+    return o.fullId === orderId || o.id === orderId;
   });
 }
 
@@ -197,7 +196,7 @@ function renderList(el) {
   html += "</div>";
 
   html += '<div class="overflow-x-auto">';
-  html += '<table class="w-full">';
+  html += '<table class="w-full min-w-[880px]">';
   html += '<thead><tr class="border-b-2 border-brand-100">';
   const cols = [
     "Payment ID",
@@ -234,17 +233,20 @@ function renderList(el) {
       const order = getOrderById(payment.order_id);
       const table = order ? order.table : "—";
       const canRefund = payment.status === "completed";
-      const canDelete = currentUser && currentUser.role === "admin";
+      const canDelete = hasAnyRole("admin");
 
       html +=
         '<tr class="border-b border-brand-100 hover:bg-brand-50 transition-colors cursor-pointer" data-action="view-detail" data-payment-id="' +
         payment.id +
         '">';
       html +=
-        '<td class="px-5 py-3 font-semibold text-primary-700">' + payment.id.slice(0, 8) + "</td>";
-      html += '<td class="px-5 py-3">#' + payment.order_id.slice(0, 8) + "</td>";
+        '<td class="px-5 py-3 font-semibold text-primary-700 break-all">' + payment.id + "</td>";
+      html += '<td class="px-5 py-3 break-all">#' + payment.order_id + "</td>";
       html += '<td class="px-5 py-3">Table ' + table + "</td>";
-      html += '<td class="px-5 py-3">—</td>';
+      html +=
+        '<td class="px-5 py-3">' +
+        (order && order.server ? order.server : "—") +
+        "</td>";
       html +=
         '<td class="px-5 py-3 font-semibold text-brand-900">$' +
         payment.amount.toFixed(2) +
@@ -299,7 +301,7 @@ async function renderDetail(el, paymentId) {
 
   const order = getOrderById(payment.order_id);
   const canRefund = payment.status === "completed";
-  const canDelete = currentUser && currentUser.role === "admin";
+  const canDelete = hasAnyRole("admin");
 
   let html = '<div class="space-y-5">';
 
@@ -321,14 +323,14 @@ async function renderDetail(el, paymentId) {
   html += '<div class="bg-brand-50 border border-brand-200 rounded-lg p-4 text-center">';
   html +=
     '<div class="text-xs font-bold text-secondary-500 uppercase tracking-wider mb-1">Payment ID</div>';
-  html += '<div class="text-lg font-bold text-brand-900">' + payment.id.slice(0, 8) + "</div>";
+  html += '<div class="text-sm font-bold text-brand-900 break-all">' + payment.id + "</div>";
   html += "</div>";
 
   html += '<div class="bg-brand-50 border border-brand-200 rounded-lg p-4 text-center">';
   html +=
     '<div class="text-xs font-bold text-secondary-500 uppercase tracking-wider mb-1">Order ID</div>';
   html +=
-    '<div class="text-lg font-bold text-brand-900">#' + payment.order_id.slice(0, 8) + "</div>";
+    '<div class="text-sm font-bold text-brand-900 break-all">#' + payment.order_id + "</div>";
   html += "</div>";
 
   html += '<div class="bg-brand-50 border border-brand-200 rounded-lg p-4 text-center">';
@@ -343,7 +345,10 @@ async function renderDetail(el, paymentId) {
   html += '<div class="bg-brand-50 border border-brand-200 rounded-lg p-4 text-center">';
   html +=
     '<div class="text-xs font-bold text-secondary-500 uppercase tracking-wider mb-1">Cashier</div>';
-  html += '<div class="text-lg font-bold text-brand-900">—</div>';
+  html +=
+    '<div class="text-lg font-bold text-brand-900">' +
+    (order && order.server ? order.server : "—") +
+    "</div>";
   html += "</div>";
 
   html += '<div class="bg-brand-50 border border-brand-200 rounded-lg p-4 text-center">';

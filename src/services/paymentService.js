@@ -1,44 +1,32 @@
-import { apiGet, apiPost, apiPut, apiDelete } from "./api.js";
+import { getCollection, insertItem, updateItem as dbUpdateItem, deleteItem as dbDeleteItem } from "../store/data/db.js";
 
 function mapPayment(p) {
   return {
     id: p.id,
     order_id: p.order_id,
     amount: parseFloat(p.amount),
-    method: p.method,
-    status: p.status,
-    payment_method: p.method,
-    payment_date: p.created_at,
-    created_at: p.created_at,
-    updated_at: p.updated_at,
+    method: p.method || p.payment_method || "cash",
+    status: p.status || "pending",
+    payment_method: p.method || p.payment_method || "cash",
+    payment_date: p.payment_date || p.created_at || new Date().toISOString(),
+    created_at: p.created_at || new Date().toISOString(),
+    updated_at: p.updated_at || null,
   };
 }
 
 export async function getAllPayments() {
-  try {
-    const items = await apiGet("/api/v1/payments/");
-    return items.map(mapPayment);
-  } catch {
-    return [];
-  }
+  return getCollection("payments").map(mapPayment);
 }
 
 export async function getPaymentById(id) {
-  try {
-    const item = await apiGet(`/api/v1/payments/${id}`);
-    return mapPayment(item);
-  } catch {
-    return null;
-  }
+  const found = getCollection("payments").find((p) => p.id === id);
+  return found ? mapPayment(found) : null;
 }
 
 export async function getPaymentsByOrderId(orderId) {
-  try {
-    const item = await apiGet(`/api/v1/payments/order/${orderId}`);
-    return item ? [mapPayment(item)] : [];
-  } catch {
-    return [];
-  }
+  return getCollection("payments")
+    .filter((p) => p.order_id === orderId)
+    .map(mapPayment);
 }
 
 export async function getPaymentsByStatus(status) {
@@ -71,25 +59,27 @@ export async function filterPayments({ status, search, date }) {
 }
 
 export async function createPayment(data) {
-  try {
-    const item = await apiPost("/api/v1/payments/", {
-      order_id: data.order_id,
-      amount: data.amount,
-      method: data.method || data.payment_method || "cash",
-    });
-    return { success: true, payment: mapPayment(item) };
-  } catch (err) {
-    return { success: false, error: err.message };
-  }
+  const newPay = {
+    id: "pay-" + Date.now(),
+    order_id: data.order_id,
+    amount: parseFloat(data.amount),
+    method: data.method || data.payment_method || "cash",
+    status: "completed",
+    created_at: new Date().toISOString(),
+  };
+  insertItem("payments", newPay);
+  return { success: true, payment: mapPayment(newPay) };
 }
 
 export async function updatePaymentStatus(id, newStatus) {
-  try {
-    const item = await apiPut(`/api/v1/payments/${id}`, { status: newStatus });
-    return { success: true, payment: mapPayment(item) };
-  } catch (err) {
-    return { success: false, error: err.message };
+  const updated = dbUpdateItem("payments", id, {
+    status: newStatus,
+    updated_at: new Date().toISOString(),
+  });
+  if (updated) {
+    return { success: true, payment: mapPayment(updated) };
   }
+  return { success: false, error: "Payment not found" };
 }
 
 export async function refundPayment(id) {
@@ -97,10 +87,6 @@ export async function refundPayment(id) {
 }
 
 export async function deletePayment(id) {
-  try {
-    await apiDelete(`/api/v1/payments/${id}`);
-    return { success: true };
-  } catch (err) {
-    return { success: false, error: err.message };
-  }
+  dbDeleteItem("payments", id);
+  return { success: true };
 }

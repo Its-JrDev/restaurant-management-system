@@ -1,5 +1,6 @@
 import { createStore } from "./index.js";
 import { getCollection } from "./data/db.js";
+import { mapReservation } from "../services/reservationService.js";
 
 const reservationsStore = createStore({
   reservations: [],
@@ -10,7 +11,7 @@ const reservationsStore = createStore({
 });
 
 export async function loadReservations() {
-  const all = getCollection("reservations");
+  const all = getCollection("reservations").map(mapReservation);
   reservationsStore.setState({ reservations: all, filteredReservations: all });
 }
 
@@ -22,11 +23,11 @@ export async function applyFilters({ date, status, search } = {}) {
     search: search !== undefined ? search : current.search,
   };
 
-  const all = getCollection("reservations");
+  const all = getCollection("reservations").map(mapReservation);
   let filtered = all;
 
   if (filters.date) {
-    filtered = filtered.filter(r => r.reservation_date && r.reservation_date.startsWith(filters.date));
+    filtered = filtered.filter(r => r.date && r.date.startsWith(filters.date));
   }
   if (filters.status) {
     filtered = filtered.filter(r => r.status === filters.status);
@@ -34,9 +35,9 @@ export async function applyFilters({ date, status, search } = {}) {
   if (filters.search) {
     const q = filters.search.toLowerCase();
     filtered = filtered.filter(r => 
-      (r.guest_name && r.guest_name.toLowerCase().includes(q)) || 
+      (r.guestName && r.guestName.toLowerCase().includes(q)) || 
       (r.id && r.id.toLowerCase().includes(q)) ||
-      (r.guest_phone && r.guest_phone.toLowerCase().includes(q))
+      (r.guestPhone && r.guestPhone.toLowerCase().includes(q))
     );
   }
 
@@ -56,17 +57,17 @@ export function getFilteredReservations() {
 }
 
 export async function getReservationByCode(code) {
-  const all = getCollection("reservations");
+  const all = getCollection("reservations").map(mapReservation);
   return all.find(r => r.id === code) || null;
 }
 
 export async function getReservationsByUser(userId) {
-  const all = getCollection("reservations");
-  return all.filter(r => r.customer_id === userId);
+  const all = getCollection("reservations").map(mapReservation);
+  return all.filter(r => r.userId === userId);
 }
 
 export async function refreshReservations() {
-  const all = getCollection("reservations");
+  const all = getCollection("reservations").map(mapReservation);
   reservationsStore.setState({ reservations: all });
   await applyFilters();
 }

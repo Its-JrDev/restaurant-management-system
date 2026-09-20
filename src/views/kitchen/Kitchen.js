@@ -3,6 +3,7 @@ import {
   loadKitchenOrders,
   loadOrders,
   updateAllKitchenOrderStatuses,
+  allOrders,
 } from "../../store/posData.js";
 import { hasAnyRole } from "../../utils/roleContext.js";
 import { withLoading, Skeletons } from "../../utils/withLoading.js";
@@ -140,8 +141,131 @@ function renderCard(order, col) {
 }
 
 function showDetailsModal(order) {
-  window._openOrderId = order.fullId || order.id;
-  window.location.hash = "#/orders";
+  const existing = document.getElementById("kitchen-order-modal");
+  if (existing) existing.remove();
+
+  const matchedOrder = allOrders.find(function(o) {
+    return o.fullId === order.fullId || o.id === order.id;
+  });
+
+  const isUrgent = order.time > 15;
+  const statusLabels = {
+    new: "New Order",
+    preparing: "In Preparation",
+    ready: "Ready to Serve",
+    served: "Served",
+  };
+  const statusColors = {
+    new: "bg-info-100 text-info-700",
+    preparing: "bg-accent-100 text-accent-700",
+    ready: "bg-success-100 text-success-700",
+    served: "bg-neutral-100 text-neutral-600",
+  };
+
+  const modalEl = document.createElement("div");
+  modalEl.id = "kitchen-order-modal";
+  modalEl.className = "fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-backdrop-in";
+
+  let itemsHtml = "";
+  order.items.forEach(function(item) {
+    itemsHtml += '<div class="flex items-center justify-between py-2 border-b border-brand-100 last:border-0">' +
+      '<div class="flex items-center gap-3">' +
+        '<span class="flex items-center justify-center w-6 h-6 rounded-md bg-brand-100 text-brand-700 font-bold text-xs">' + item.qty + 'x</span>' +
+        '<span class="text-sm font-semibold text-neutral-800">' + item.name + '</span>' +
+      '</div>' +
+    '</div>';
+  });
+
+  const nextAction = order.status === "new"
+    ? { next: "preparing", label: "Start Preparing", cls: "bg-brand-600 hover:bg-brand-700 text-white" }
+    : order.status === "preparing"
+      ? { next: "ready", label: "Mark Ready", cls: "bg-primary-600 hover:bg-primary-700 text-white" }
+      : null;
+
+  modalEl.innerHTML =
+    '<div class="bg-white rounded-2xl shadow-2xl border border-brand-300 w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">' +
+      '<div class="flex items-center justify-between px-6 py-4 border-b border-brand-100 bg-brand-50">' +
+        '<div>' +
+          '<div class="flex items-center gap-2">' +
+            '<h3 class="text-lg font-bold text-brand-900 font-display">Order #' + order.id + '</h3>' +
+            '<span class="text-xs font-bold px-2.5 py-0.5 rounded-full ' + (statusColors[order.status] || "bg-brand-100 text-brand-700") + '">' + (statusLabels[order.status] || order.status) + '</span>' +
+          '</div>' +
+          '<p class="text-xs text-secondary-500 mt-0.5">Table ' + order.table + ' • ' + (matchedOrder && matchedOrder.server ? 'Server: ' + matchedOrder.server : 'Kitchen Ticket') + '</p>' +
+        '</div>' +
+        '<button id="closeKitchenModal" class="w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-600 hover:bg-brand-100 transition-colors cursor-pointer border-none bg-transparent">' +
+          '<i data-lucide="x" class="w-5 h-5"></i>' +
+        '</button>' +
+      '</div>' +
+      '<div class="p-6 overflow-y-auto space-y-4">' +
+        '<div class="grid grid-cols-2 gap-3">' +
+          '<div class="p-3 bg-brand-50/70 rounded-xl border border-brand-200">' +
+            '<span class="text-[11px] font-bold text-secondary-500 uppercase tracking-wider block">Elapsed Time</span>' +
+            '<span class="text-sm font-bold ' + (isUrgent ? 'text-error-600' : 'text-brand-800') + ' flex items-center gap-1 mt-0.5">' +
+              '<i data-lucide="clock" class="w-4 h-4"></i> ' + order.time + ' min ' + (isUrgent ? '(Urgent)' : '') +
+            '</span>' +
+          '</div>' +
+          '<div class="p-3 bg-brand-50/70 rounded-xl border border-brand-200">' +
+            '<span class="text-[11px] font-bold text-secondary-500 uppercase tracking-wider block">Items Count</span>' +
+            '<span class="text-sm font-bold text-brand-800 flex items-center gap-1 mt-0.5">' +
+              '<i data-lucide="utensils" class="w-4 h-4"></i> ' + order.items.length + ' item(s)' +
+            '</span>' +
+          '</div>' +
+        '</div>' +
+        (order.note ? (
+          '<div class="p-3 bg-accent-50 border-l-4 border-accent-500 rounded-r-xl text-accent-900">' +
+            '<span class="text-xs font-bold uppercase tracking-wider block text-accent-700 mb-0.5">Kitchen Note</span>' +
+            '<p class="text-sm font-medium italic">' + order.note + '</p>' +
+          '</div>'
+        ) : '') +
+        '<div class="border border-brand-200 rounded-xl p-4 bg-white">' +
+          '<h4 class="text-xs font-bold uppercase tracking-wider text-brand-700 mb-3">Order Items</h4>' +
+          '<div class="divide-y divide-brand-100">' + itemsHtml + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="px-6 py-4 bg-brand-50 border-t border-brand-100 flex items-center justify-between gap-3">' +
+        '<button id="viewPosOrderBtn" class="text-xs font-semibold text-primary-600 hover:text-primary-800 hover:underline flex items-center gap-1 bg-transparent border-0 cursor-pointer">' +
+          '<i data-lucide="external-link" class="w-3.5 h-3.5"></i> Ver orden completa en POS' +
+        '</button>' +
+        '<div class="flex items-center gap-2">' +
+          '<button id="closeKitchenModalBtn" class="px-4 py-2 text-xs font-semibold rounded-lg bg-white border border-brand-300 text-neutral-700 hover:bg-brand-50 cursor-pointer transition-colors">Close</button>' +
+          (nextAction ? (
+            '<button id="modalActionMoveBtn" class="px-4 py-2 text-xs font-semibold rounded-lg border-0 cursor-pointer transition-colors ' + nextAction.cls + '">' +
+              nextAction.label +
+            '</button>'
+          ) : '') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(modalEl);
+  if (typeof window.createIcons === "function") window.createIcons();
+
+  function closeModal() {
+    modalEl.remove();
+  }
+
+  modalEl.querySelector("#closeKitchenModal").addEventListener("click", closeModal);
+  modalEl.querySelector("#closeKitchenModalBtn").addEventListener("click", closeModal);
+  modalEl.addEventListener("click", function(e) {
+    if (e.target === modalEl) closeModal();
+  });
+
+  const posBtn = modalEl.querySelector("#viewPosOrderBtn");
+  if (posBtn) {
+    posBtn.addEventListener("click", function() {
+      closeModal();
+      window._openOrderId = order.fullId || order.id;
+      window.location.hash = "#/orders";
+    });
+  }
+
+  const actionBtn = modalEl.querySelector("#modalActionMoveBtn");
+  if (actionBtn && nextAction) {
+    actionBtn.addEventListener("click", async function() {
+      closeModal();
+      await moveOrder(order.id, nextAction.next);
+    });
+  }
 }
 
 const KitchenView = {

@@ -1,12 +1,11 @@
-import { apiGet, apiPost, apiPut, apiDelete } from "./api.js";
+import { getCollection, insertItem, updateItem as dbUpdateItem, deleteItem as dbDeleteItem } from "../store/data/db.js";
 
-let _tablesCache = [];
-
-function mapReservation(r) {
+export function mapReservation(r) {
   const dt = r.reservation_date ? new Date(r.reservation_date) : null;
   let tableNum = r.table_number || r.tableNumber || null;
-  if (!tableNum && r.table_id && _tablesCache.length) {
-    const found = _tablesCache.find(function (t) {
+  if (!tableNum && r.table_id) {
+    const tables = getCollection("tables");
+    const found = tables.find(function (t) {
       return t.id === r.table_id;
     });
     if (found) tableNum = found.number;
@@ -28,26 +27,17 @@ function mapReservation(r) {
   };
 }
 
-export async function setTablesCache(tablesArr) {
-  _tablesCache = tablesArr || [];
+export async function setTablesCache(_tablesArr) {
+  /* kept for API compatibility — table numbers now resolve from local db */
 }
 
 export async function getAllReservations() {
-  try {
-    const items = await apiGet("/api/v1/reservations/");
-    return items.map(mapReservation);
-  } catch {
-    return [];
-  }
+  return getCollection("reservations").map(mapReservation);
 }
 
 export async function getReservationById(id) {
-  try {
-    const item = await apiGet(`/api/v1/reservations/${id}`);
-    return mapReservation(item);
-  } catch {
-    return null;
-  }
+  const found = getCollection("reservations").find((r) => r.id === id);
+  return found ? mapReservation(found) : null;
 }
 
 export async function getReservationByCode(code) {
@@ -95,55 +85,55 @@ export async function filterReservations({ date, status, search }) {
 }
 
 export async function createReservation(data) {
-  try {
-    const reservationDateTime =
-      data.date && data.time
-        ? `${data.date}T${data.time}:00`
-        : data.date
-          ? `${data.date}T00:00:00`
-          : new Date().toISOString();
+  const reservationDateTime =
+    data.date && data.time
+      ? `${data.date}T${data.time}:00`
+      : data.date
+        ? `${data.date}T00:00:00`
+        : new Date().toISOString();
 
-    const item = await apiPost("/api/v1/reservations/", {
-      table_id: data.tableId || data.table_id || null,
-      guest_name: data.guestName || data.guest_name || null,
-      guest_phone: data.guestPhone || data.guest_phone || null,
-      reservation_date: reservationDateTime,
-      guest_count: data.partySize || data.guest_count || 1,
-      notes: data.notes || "",
-    });
-    return { success: true, reservation: mapReservation(item) };
-  } catch (err) {
-    return { success: false, error: err.message };
-  }
+  const newReservation = {
+    id: "RES-" + Date.now(),
+    guest_name: data.guestName || data.guest_name || null,
+    guest_phone: data.guestPhone || data.guest_phone || null,
+    table_id: data.tableId || data.table_id || null,
+    reservation_date: reservationDateTime,
+    guest_count: data.partySize || data.guest_count || 1,
+    status: "pending",
+    notes: data.notes || "",
+    created_at: new Date().toISOString(),
+  };
+  insertItem("reservations", newReservation);
+  return { success: true, reservation: mapReservation(newReservation) };
 }
 
 export async function updateReservationStatus(id, newStatus) {
-  try {
-    const item = await apiPut(`/api/v1/reservations/${id}`, {
-      status: newStatus,
-    });
-    return { success: true, reservation: mapReservation(item) };
-  } catch (err) {
-    return { success: false, error: err.message };
+  const updated = dbUpdateItem("reservations", id, {
+    status: newStatus,
+    updated_at: new Date().toISOString(),
+  });
+  if (updated) {
+    return { success: true, reservation: mapReservation(updated) };
   }
+  return { success: false, error: "Reservation not found" };
 }
 
 export async function deleteReservation(id) {
-  try {
-    await apiDelete(`/api/v1/reservations/${id}`);
-    return { success: true };
-  } catch (err) {
-    return { success: false, error: err.message };
-  }
+  dbDeleteItem("reservations", id);
+  return { success: true };
 }
 
 export async function confirmReservation(id, tableId) {
-  try {
-    const item = await apiPut(`/api/v1/reservations/confirm/${id}`, {
-      table_id: tableId,
-    });
-    return { success: true, reservation: mapReservation(item) };
-  } catch (err) {
-    return { success: false, error: err.message };
+  const updates = {
+    status: "confirmed",
+    updated_at: new Date().toISOString(),
+  };
+  if (tableId) {
+    updates.table_id = tableId;
   }
+  const updated = dbUpdateItem("reservations", id, updates);
+  if (updated) {
+    return { success: true, reservation: mapReservation(updated) };
+  }
+  return { success: false, error: "Reservation not found" };
 }

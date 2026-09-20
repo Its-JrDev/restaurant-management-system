@@ -15,6 +15,7 @@ const ROLE_PERMISSIONS = {
     "view:settings",
     "manage:orders",
     "manage:tables",
+    "manage:kitchen",
     "manage:reservations",
     "manage:payments",
     "manage:menu",
@@ -24,16 +25,16 @@ const ROLE_PERMISSIONS = {
     "export:reports",
   ],
   waiter: [
-    "view:dashboard",
-    "view:pos",
-    "view:orders",
     "view:tables",
-    "view:menu",
-    "manage:orders",
     "manage:tables",
+    "view:pos",
+    "manage:orders",
+    "view:reservations",
+    "manage:reservations",
+    "view:menu",
   ],
-  chef: ["view:kitchen", "view:pos", "view:orders", "view:menu", "manage:orders"],
-  cashier: ["view:dashboard", "view:payments", "view:menu", "manage:payments"],
+  chef: ["view:kitchen", "manage:kitchen", "view:menu", "view:inventory"],
+  cashier: ["view:payments", "manage:payments", "view:pos", "view:menu"],
 };
 
 export function getRole() {

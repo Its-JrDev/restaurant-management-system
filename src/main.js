@@ -34,7 +34,7 @@ const routes = {
   "/inventory": { view: Inventory, shell: true, auth: true },
   "/reports": { view: Reports, shell: true, auth: true },
   "/settings": { view: Settings, shell: true, auth: true },
-  "/admin": { view: PosView, shell: true, auth: true },
+  "/admin": { view: Dashboard, shell: true, auth: true },
   "/orders": { view: PosView, shell: true, auth: true },
 };
 

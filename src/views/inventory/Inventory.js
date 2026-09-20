@@ -3,6 +3,7 @@ import * as inventoryService from "../../services/inventoryService.js";
 import { inventoryItemModal } from "../../components/ui/InventoryItemModal.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
 import { toast } from "../../components/ui/ToastManager.js";
+import { hasAnyRole } from "../../utils/roleContext.js";
 import CheckboxField from "../../components/forms/CheckboxField.js";
 import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
@@ -143,8 +144,10 @@ function renderList(el) {
       counts.low_stock +
       " low stock</span>";
   }
-  html +=
-    '<button data-action="create-item" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> Add Item</button>';
+  if (hasAnyRole("admin")) {
+    html +=
+      '<button data-action="create-item" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> Add Item</button>';
+  }
   html += "</div></div>";
 
   html += '<div class="flex flex-wrap gap-2">';
@@ -242,10 +245,12 @@ function renderList(el) {
         '<button data-action="view-detail" data-item-id="' +
         item.id +
         '" class="w-7 h-7 inline-flex items-center justify-center rounded-md bg-transparent text-brand-600 hover:bg-brand-100 border-0 cursor-pointer" title="View"><i data-lucide="eye" class="w-4 h-4"></i></button>';
-      html +=
-        '<button data-action="edit-item" data-item-id="' +
-        item.id +
-        '" class="w-7 h-7 inline-flex items-center justify-center rounded-md bg-transparent text-primary-600 hover:bg-primary-100 border-0 cursor-pointer" title="Edit"><i data-lucide="pencil" class="w-4 h-4"></i></button>';
+      if (hasAnyRole("admin")) {
+        html +=
+          '<button data-action="edit-item" data-item-id="' +
+          item.id +
+          '" class="w-7 h-7 inline-flex items-center justify-center rounded-md bg-transparent text-primary-600 hover:bg-primary-100 border-0 cursor-pointer" title="Edit"><i data-lucide="pencil" class="w-4 h-4"></i></button>';
+      }
       html += "</div></td>";
       html += "</tr>";
     });
@@ -341,23 +346,25 @@ async function renderDetail(el, itemId) {
   html += "</div></div>";
 
   html += '<div class="flex gap-3">';
-  html +=
-    '<button data-action="stock-in" data-item-id="' +
-    item.id +
-    '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-success-600 hover:bg-success-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="plus-circle" class="w-4 h-4"></i> Stock In</button>';
-  html +=
-    '<button data-action="stock-out" data-item-id="' +
-    item.id +
-    '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-accent-600 hover:bg-accent-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="minus-circle" class="w-4 h-4"></i> Stock Out</button>';
-  html += '<div class="flex-1"></div>';
-  html +=
-    '<button data-action="edit-item" data-item-id="' +
-    item.id +
-    '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="pencil" class="w-4 h-4"></i> Edit</button>';
-  html +=
-    '<button data-action="delete-item" data-item-id="' +
-    item.id +
-    '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-error-600 hover:bg-error-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i> Delete</button>';
+  if (hasAnyRole("admin")) {
+    html +=
+      '<button data-action="stock-in" data-item-id="' +
+      item.id +
+      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-success-600 hover:bg-success-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="plus-circle" class="w-4 h-4"></i> Stock In</button>';
+    html +=
+      '<button data-action="stock-out" data-item-id="' +
+      item.id +
+      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-accent-600 hover:bg-accent-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="minus-circle" class="w-4 h-4"></i> Stock Out</button>';
+    html += '<div class="flex-1"></div>';
+    html +=
+      '<button data-action="edit-item" data-item-id="' +
+      item.id +
+      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="pencil" class="w-4 h-4"></i> Edit</button>';
+    html +=
+      '<button data-action="delete-item" data-item-id="' +
+      item.id +
+      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-error-600 hover:bg-error-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i> Delete</button>';
+  }
   html += "</div>";
 
   html += '<div id="movement-form"></div>';

@@ -15,6 +15,10 @@ function renderFloatingButton() {
   const existing = document.getElementById("dev-role-switcher");
   if (existing) existing.remove();
 
+  if (window.location.hash === "#/login" || window.location.hash === "" || window.location.pathname.includes("/login")) {
+    return;
+  }
+
   const role = getCurrentRole();
   const roleMeta =
     ROLES.find(function (r) {
@@ -24,38 +28,30 @@ function renderFloatingButton() {
   const wrapper = document.createElement("div");
   wrapper.id = "dev-role-switcher";
 
-  // Check if we can inject into topbar
-  const topbarContainer = document.getElementById("demo-role-switcher-container");
+  // Always floating in bottom right
+  wrapper.style.cssText = "position:fixed;bottom:calc(4.5rem + env(safe-area-inset-bottom, 20px));right:20px;z-index:9999;font-family:system-ui,sans-serif;";
   
-  if (topbarContainer) {
-    wrapper.style.cssText = "position:relative;font-family:system-ui,sans-serif;";
-    topbarContainer.appendChild(wrapper);
-  } else {
-    wrapper.style.cssText = "position:fixed;bottom:calc(4.5rem + env(safe-area-inset-bottom, 20px));right:20px;z-index:9999;font-family:system-ui,sans-serif;";
-    document.body.appendChild(wrapper);
-  }
+  // Tailwind handles the desktop override (bottom-8 instead of 4.5rem if we could, but cssText inline overrides tailwind. We'll leave it as is or use a class)
+  wrapper.className = "max-md:bottom-[calc(4.5rem+20px)] md:bottom-8 right-4 md:right-8";
+  wrapper.style.position = "fixed";
+  wrapper.style.zIndex = "9999";
+  wrapper.style.fontFamily = "system-ui, sans-serif";
+
+  document.body.appendChild(wrapper);
 
   if (expanded) {
     let html =
-      '<div style="position:absolute;right:0;top:' + (topbarContainer ? 'calc(100% + 8px)' : 'auto') + ';bottom:' + (topbarContainer ? 'auto' : '100%') + ';margin-bottom:' + (topbarContainer ? '0' : '8px') + ';background:#1e1e1e;border-radius:12px;padding:8px;box-shadow:0 8px 32px rgba(0,0,0,0.35);min-width:180px;z-index:100000;">';
+      '<div class="absolute right-0 bottom-full mb-3 bg-brand-100 border border-brand-300 rounded-xl p-2 shadow-2xl min-w-[180px] z-[100000] dark:bg-brand-200 dark:border-brand-400">';
     html +=
-      '<div style="padding:4px 8px 6px;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.05em;">Demo Role Switcher</div>';
+      '<div class="px-2 py-1 text-[10px] font-bold text-brand-600 dark:text-brand-700 uppercase tracking-wider">Demo Role Switcher</div>';
     ROLES.forEach(function (r) {
       const isActive = r.id === role;
-      const bg = isActive ? r.color : "transparent";
-      const textColor = isActive ? "#fff" : "#ccc";
-      const hoverBg = isActive
-        ? ""
-        : "onmouseover=\"this.style.background='#333'\" onmouseout=\"this.style.background='transparent'\"";
+      const bgClass = isActive ? "bg-brand-500 text-white" : "text-brand-900 hover:bg-brand-200 dark:text-brand-900 dark:hover:bg-brand-300";
       html +=
         '<button data-role="' +
         r.id +
-        '" style="display:flex;align-items:center;gap:8px;width:100%;padding:7px 10px;border:none;border-radius:8px;background:' +
-        bg +
-        ";color:" +
-        textColor +
-        ";font-size:13px;font-weight:600;cursor:pointer;text-align:left;" +
-        (isActive ? "" : hoverBg) +
+        '" class="flex items-center gap-2 w-full px-3 py-2 border-none rounded-lg text-[13px] font-semibold cursor-pointer text-left transition-colors ' +
+        bgClass +
         '">';
       html +=
         '<span style="width:8px;height:8px;border-radius:50%;background:' +
@@ -63,7 +59,7 @@ function renderFloatingButton() {
         ';flex-shrink:0;"></span>';
       html += r.label;
       if (isActive) {
-        html += '<span style="margin-left:auto;font-size:10px;opacity:0.7;">&#10003;</span>';
+        html += '<span class="ml-auto text-[10px] opacity-70">&#10003;</span>';
       }
       html += "</button>";
     });
@@ -71,9 +67,8 @@ function renderFloatingButton() {
     wrapper.innerHTML = html;
   } else {
     wrapper.innerHTML =
-      '<button id="dev-role-toggle" style="display:flex;align-items:center;gap:6px;height:40px;padding:0 16px;border-radius:9999px;border:1px solid rgba(0,0,0,0.1);' +
-      'background:#1e1e1e;color:#fff;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.15);font-family:inherit;text-transform:uppercase;letter-spacing:0.03em;transition:all 0.2s;">' +
-      '<span style="width:8px;height:8px;border-radius:50%;background:' + roleMeta.color + ';"></span>' +
+      '<button id="dev-role-toggle" class="flex items-center gap-2 h-10 px-4 rounded-full border border-brand-400 bg-brand-600 hover:bg-brand-700 text-white text-[12px] font-bold cursor-pointer shadow-lg shadow-brand-hover uppercase tracking-wide transition-all">' +
+      '<span style="width:8px;height:8px;border-radius:50%;background:' + roleMeta.color + ';box-shadow:0 0 0 1px rgba(255,255,255,0.3);"></span>' +
       '<span class="hidden md:inline">Demo: </span>' + (roleMeta ? roleMeta.label : role) +
       "</button>";
   }
@@ -154,6 +149,10 @@ export function initRoleSwitcher(authModule) {
   } else {
     renderFloatingButton();
   }
+  
+  window.addEventListener("hashchange", function () {
+    renderFloatingButton();
+  });
 }
 
 export default { initRoleSwitcher };

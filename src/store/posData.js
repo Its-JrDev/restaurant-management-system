@@ -1,4 +1,5 @@
 import { getCollection, insertItem, updateItem as dbUpdateItem, deleteItem as dbDeleteItem } from "./data/db.js";
+import { currentUser } from "./auth.js";
 
 export let menuItems = [];
 export let allOrders = [];
@@ -80,13 +81,18 @@ export async function loadOrders() {
     if (!_menuLoaded) await loadMenuItems();
     const orders = getCollection("orders");
     const orderItems = getCollection("order_items");
+    const tablesColl = getCollection("tables");
     allOrders = orders.map(function (o) {
       const serverName = _userMap[o.waiter_id] || o.waiter_id || "";
       const oItems = orderItems.filter(oi => oi.order_id === o.id);
+      const matchedTable = tablesColl.find(function (t) {
+        return String(t.id) === String(o.table_id);
+      });
       return {
         id: typeof o.id === "string" ? o.id.slice(0, 8) : o.id,
         fullId: o.id,
         table: o.table_id,
+        tableNumber: matchedTable ? matchedTable.number : null,
         items: oItems.map(function (oi) {
           const matched = menuItems.find(function (m) {
             return String(m.id) === String(oi.menu_item_id);
@@ -292,7 +298,15 @@ export async function createOrder(tableId, reservationId) {
       created_at: new Date().toISOString()
     };
     insertItem("orders", order);
+    if (tableId) {
+      const tables = getCollection("tables");
+      const table = tables.find(t => String(t.id) === String(tableId));
+      if (table && table.status === "available") {
+        dbUpdateItem("tables", table.id, { status: "occupied" });
+      }
+    }
     await loadOrders();
+    await loadTables();
     return { success: true, order: order };
   } catch (err) {
     return { success: false, error: err.message };
@@ -345,7 +359,18 @@ export async function updateOrderStatus(orderId, frontendStatus) {
   if (!backendStatus) return { success: false, error: "Cannot persist status: " + frontendStatus };
   try {
     const result = dbUpdateItem("orders", orderId, { status: backendStatus });
+    if (backendStatus === "completed" || backendStatus === "cancelled") {
+      const order = getCollection("orders").find(o => o.id === orderId);
+      if (order && order.table_id) {
+        const tables = getCollection("tables");
+        const table = tables.find(t => String(t.id) === String(order.table_id));
+        if (table && table.status !== "maintenance") {
+          dbUpdateItem("tables", table.id, { status: "available" });
+        }
+      }
+    }
     await loadOrders();
+    await loadTables();
     await loadKitchenOrders();
     window.dispatchEvent(new CustomEvent("orders:updated"));
     return { success: true, order: result };
@@ -356,8 +381,17 @@ export async function updateOrderStatus(orderId, frontendStatus) {
 
 export async function deleteOrder(orderId) {
   try {
+    const order = getCollection("orders").find(o => o.id === orderId);
     dbDeleteItem("orders", orderId);
+    if (order && order.table_id && order.status !== "completed" && order.status !== "cancelled") {
+      const tables = getCollection("tables");
+      const table = tables.find(t => String(t.id) === String(order.table_id));
+      if (table && table.status === "occupied") {
+        dbUpdateItem("tables", table.id, { status: "available" });
+      }
+    }
     await loadOrders();
+    await loadTables();
     await loadKitchenOrders();
     window.dispatchEvent(new CustomEvent("orders:updated"));
     return { success: true };
@@ -366,12 +400,32 @@ export async function deleteOrder(orderId) {
   }
 }
 
+function deriveParentStatus(kitchenItems) {
+  if (!kitchenItems.length) return null;
+  const statuses = new Set(kitchenItems.map((k) => k.status));
+  if (statuses.size === 1 && statuses.has("delivered")) return "served";
+  if (!statuses.has("pending") && !statuses.has("preparing")) return "ready";
+  if (!statuses.has("pending")) return "preparing";
+  return "new";
+}
+
 export async function updateKitchenOrderStatus(kitchenOrderId, newStatus) {
   try {
     const result = dbUpdateItem("kitchen_orders", kitchenOrderId, {
       status: newStatus,
     });
+    if (result && result.order_id) {
+      const siblings = getCollection("kitchen_orders").filter(
+        (k) => k.order_id === result.order_id
+      );
+      const derived = deriveParentStatus(siblings);
+      const parent = getCollection("orders").find((o) => o.id === result.order_id);
+      if (derived && parent && parent.status !== "completed" && parent.status !== "cancelled") {
+        dbUpdateItem("orders", parent.id, { status: derived });
+      }
+    }
     await loadOrders();
+    await loadTables();
     await loadKitchenOrders();
     window.dispatchEvent(new CustomEvent("orders:updated"));
     return { success: true, order: result };
@@ -380,7 +434,7 @@ export async function updateKitchenOrderStatus(kitchenOrderId, newStatus) {
   }
 }
 
-export async function updateAllKitchenOrderStatuses(kitchenIds, newStatus, expectedCurrent) {
+export async function updateAllKitchenOrderStatuses(kitchenIds, newStatus, _expectedCurrent) {
   let lastResult;
   for (const kid of kitchenIds) {
     lastResult = await updateKitchenOrderStatus(kid, newStatus);
@@ -430,13 +484,10 @@ export function recalcOrder(order) {
   order.total = Math.round(subtotal * 1.1 * 100) / 100;
 }
 
-export let currentRole = "admin";
 
-export function setCurrentRole(role) {
-  currentRole = role;
-}
 
 export function saveDraft(cartItems, tableId) {
+  const user = currentUser();
   const draft = {
     id: "draft-" + draftCounter++,
     table: tableId || null,
@@ -447,8 +498,8 @@ export function saveDraft(cartItems, tableId) {
     status: "draft",
     time: "Just now",
     note: null,
-    server: "Admin",
-    createdBy: "admin",
+    server: user ? user.name || user.username : "Admin",
+    createdBy: user ? user.role : "admin",
     placedAt: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
   };
   recalcOrder(draft);

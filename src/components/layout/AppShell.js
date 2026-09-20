@@ -131,7 +131,7 @@ const AppShell = {
       '<footer class="flex items-center gap-3 px-5 py-4 shrink-0 border-t border-white/20"></footer>' +
       "</aside>" +
       '<header class="bg-brand-50 border-b-2 border-brand-300 z-10 flex items-center px-4 lg:px-6 gap-3 col-start-1 lg:col-start-2 row-start-1"></header>' +
-      '<main id="main-content" class="p-4 lg:p-6 overflow-auto bg-brand-100 col-start-1 lg:col-start-2 row-start-2 pb-20 lg:pb-0"></main>' +
+      '<main id="main-content" class="p-4 lg:p-6 overflow-auto bg-brand-100 col-start-1 lg:col-start-2 row-start-2 pb-36 lg:pb-20"></main>' +
       "</div>" +
       '<nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 lg:hidden bg-white border-t border-brand-200 flex items-stretch justify-around pb-[env(safe-area-inset-bottom,0px)]"></nav>';
 

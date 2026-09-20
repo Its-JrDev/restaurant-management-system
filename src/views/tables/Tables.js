@@ -1143,9 +1143,17 @@ function setupEvents(el) {
       if (srid) {
         await apiUpdateTable(srid, { status: "occupied" });
         await loadTables();
-        selectedTableId = srid;
-        subView = "main";
-        renderMain(el);
+        const resState = getReservationState();
+        const linkedRes = (resState.reservations || []).find(
+          function (r) {
+            return r.tableId === srid && r.status === "confirmed";
+          }
+        );
+        if (linkedRes) {
+          window._pendingReservationId = linkedRes.id;
+        }
+        window._openOrderTableId = srid;
+        window.navigate("/pos");
       }
       return;
     }

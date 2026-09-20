@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut, apiDelete } from "./api.js";
+import { getCollection, insertItem, updateItem as dbUpdateItem, deleteItem as dbDeleteItem } from "../store/data/db.js";
 
 function mapItem(item) {
   return {
@@ -25,87 +25,81 @@ function mapMovement(m) {
 }
 
 export async function getAllItems() {
-  try {
-    const items = await apiGet("/api/v1/inventory/");
-    return items.map(mapItem);
-  } catch {
-    return [];
-  }
+  return getCollection("inventory_items").map(mapItem);
 }
 
 export async function getItemById(id) {
-  try {
-    const item = await apiGet(`/api/v1/inventory/${id}`);
-    return mapItem(item);
-  } catch {
-    return null;
-  }
+  const found = getCollection("inventory_items").find((i) => i.id === id);
+  return found ? mapItem(found) : null;
 }
 
 export async function getLowStockItems() {
-  try {
-    const items = await apiGet("/api/v1/inventory/low-stock");
-    return items.map(mapItem);
-  } catch {
-    return [];
-  }
+  return getCollection("inventory_items")
+    .filter((i) => i.quantity <= i.min_stock)
+    .map(mapItem);
 }
 
 export async function createItem(data) {
-  try {
-    const item = await apiPost("/api/v1/inventory/", {
-      name: data.name,
-      unit: data.unit,
-      quantity: data.quantity || 0,
-      min_stock: data.min_stock || 0,
-    });
-    return { success: true, item: mapItem(item) };
-  } catch (err) {
-    return { success: false, error: err.message };
-  }
+  const newItem = {
+    id: "inv-" + Date.now(),
+    name: data.name,
+    unit: data.unit,
+    quantity: parseFloat(data.quantity) || 0,
+    min_stock: parseFloat(data.min_stock) || 0,
+    is_active: true,
+    created_at: new Date().toISOString(),
+  };
+  insertItem("inventory_items", newItem);
+  return { success: true, item: mapItem(newItem) };
 }
 
 export async function updateItem(id, data) {
-  try {
-    const item = await apiPut(`/api/v1/inventory/${id}`, {
-      name: data.name,
-      unit: data.unit,
-      quantity: data.quantity,
-      min_stock: data.min_stock,
-    });
-    return { success: true, item: mapItem(item) };
-  } catch (err) {
-    return { success: false, error: err.message };
+  const updated = dbUpdateItem("inventory_items", id, {
+    name: data.name,
+    unit: data.unit,
+    quantity: parseFloat(data.quantity),
+    min_stock: parseFloat(data.min_stock),
+    updated_at: new Date().toISOString(),
+  });
+  if (updated) {
+    return { success: true, item: mapItem(updated) };
   }
+  return { success: false, error: "Item not found" };
 }
 
 export async function registerMovement(itemId, data) {
-  try {
-    const movement = await apiPost(`/api/v1/inventory/${itemId}/movements`, {
-      type: data.type,
-      quantity: data.quantity,
-      reason: data.reason || "",
-    });
-    return { success: true, movement: mapMovement(movement) };
-  } catch (err) {
-    return { success: false, error: err.message };
-  }
+  const items = getCollection("inventory_items");
+  const item = items.find((i) => i.id === itemId);
+  if (!item) return { success: false, error: "Item not found" };
+
+  const newQuantity =
+    data.type === "in" ? item.quantity + data.quantity : item.quantity - data.quantity;
+  const updated = dbUpdateItem("inventory_items", itemId, {
+    quantity: newQuantity,
+    updated_at: new Date().toISOString(),
+  });
+
+  const movement = {
+    id: "mov-" + Date.now(),
+    item_id: itemId,
+    type: data.type,
+    quantity: parseFloat(data.quantity),
+    reason: data.reason || "",
+    created_at: new Date().toISOString(),
+  };
+  insertItem("inventory_movements", movement);
+
+  return { success: true, movement: mapMovement(movement), item: mapItem(updated) };
 }
 
 export async function deleteItem(id) {
-  try {
-    await apiDelete(`/api/v1/inventory/${id}`);
-    return { success: true };
-  } catch (err) {
-    return { success: false, error: err.message };
-  }
+  dbDeleteItem("inventory_items", id);
+  return { success: true };
 }
 
 export async function getMovementsByItem(itemId) {
-  try {
-    const items = await apiGet(`/api/v1/inventory/${itemId}/movements`);
-    return items.map(mapMovement);
-  } catch {
-    return [];
-  }
+  return getCollection("inventory_movements")
+    .filter((m) => m.item_id === itemId)
+    .map(mapMovement)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 }

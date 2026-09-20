@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut, apiDelete } from "./api.js";
+import { getCollection, insertItem, updateItem as dbUpdateItem, deleteItem as dbDeleteItem } from "../store/data/db.js";
 
 function mapMenuItem(item) {
   return {
@@ -7,7 +7,7 @@ function mapMenuItem(item) {
     name: item.name,
     description: item.description || "",
     price: parseFloat(item.price),
-    available: item.is_available,
+    available: item.is_available !== undefined ? item.is_available !== false : true,
     image_url: item.image_url || null,
     created_at: item.created_at,
     updated_at: item.updated_at,
@@ -23,57 +23,33 @@ function mapCategory(cat) {
 }
 
 export async function getAllProducts() {
-  try {
-    const items = await apiGet("/api/v1/menu/");
-    return items.map(mapMenuItem);
-  } catch {
-    return [];
-  }
+  return getCollection("menu_items").map(mapMenuItem);
 }
 
 export async function getProductById(id) {
-  try {
-    const item = await apiGet(`/api/v1/menu/${id}`);
-    return mapMenuItem(item);
-  } catch {
-    return null;
-  }
+  const found = getCollection("menu_items").find((p) => p.id === id);
+  return found ? mapMenuItem(found) : null;
 }
 
 export async function getProductsByCategory(categoryId) {
-  try {
-    const items = await apiGet(`/api/v1/menu/category/${categoryId}`);
-    return items.map(mapMenuItem);
-  } catch {
-    return [];
-  }
+  return getCollection("menu_items")
+    .filter((p) => p.category_id === categoryId)
+    .map(mapMenuItem);
 }
 
 export async function getAvailableProducts() {
-  try {
-    const items = await apiGet("/api/v1/menu/available");
-    return items.map(mapMenuItem);
-  } catch {
-    return [];
-  }
+  return getCollection("menu_items")
+    .filter((p) => p.is_available !== false)
+    .map(mapMenuItem);
 }
 
 export async function getAllCategories() {
-  try {
-    const cats = await apiGet("/api/v1/categories/");
-    return cats.map(mapCategory);
-  } catch {
-    return [];
-  }
+  return getCollection("categories").map(mapCategory);
 }
 
 export async function getCategoryById(id) {
-  try {
-    const cat = await apiGet(`/api/v1/categories/${id}`);
-    return mapCategory(cat);
-  } catch {
-    return null;
-  }
+  const found = getCollection("categories").find((c) => c.id === id);
+  return found ? mapCategory(found) : null;
 }
 
 export async function filterProducts({ category, available, search }) {
@@ -101,53 +77,45 @@ export async function filterProducts({ category, available, search }) {
 }
 
 export async function createProduct(data) {
-  try {
-    const item = await apiPost("/api/v1/menu/", {
-      name: data.name,
-      description: data.description || "",
-      price: data.price,
-      category_id: data.category_id,
-      image_url: data.image_url || null,
-    });
-    return { success: true, product: mapMenuItem(item) };
-  } catch (err) {
-    return { success: false, error: err.message };
-  }
+  const newItem = {
+    id: "mi-" + Date.now(),
+    name: data.name,
+    description: data.description || "",
+    price: parseFloat(data.price),
+    category_id: data.category_id,
+    is_available: true,
+    image_url: data.image_url || null,
+    created_at: new Date().toISOString(),
+  };
+  insertItem("menu_items", newItem);
+  return { success: true, product: mapMenuItem(newItem) };
 }
 
 export async function updateProduct(id, data) {
-  try {
-    const item = await apiPut(`/api/v1/menu/${id}`, {
-      name: data.name,
-      description: data.description,
-      price: data.price,
-      category_id: data.category_id,
-      is_available: data.available,
-      image_url: data.image_url,
-    });
-    return { success: true, product: mapMenuItem(item) };
-  } catch (err) {
-    return { success: false, error: err.message };
+  const updated = dbUpdateItem("menu_items", id, {
+    name: data.name,
+    description: data.description,
+    price: parseFloat(data.price),
+    category_id: data.category_id,
+    is_available: data.available,
+    image_url: data.image_url || null,
+    updated_at: new Date().toISOString(),
+  });
+  if (updated) {
+    return { success: true, product: mapMenuItem(updated) };
   }
+  return { success: false, error: "Product not found" };
 }
 
 export async function toggleProductAvailability(id) {
-  try {
-    const product = await getProductById(id);
-    if (!product) return { success: false, error: "Product not found" };
-    return updateProduct(id, { ...product, available: !product.available });
-  } catch (err) {
-    return { success: false, error: err.message };
-  }
+  const product = await getProductById(id);
+  if (!product) return { success: false, error: "Product not found" };
+  return updateProduct(id, { ...product, available: !product.available });
 }
 
 export async function deleteProduct(id) {
-  try {
-    await apiDelete(`/api/v1/menu/${id}`);
-    return { success: true };
-  } catch (err) {
-    return { success: false, error: err.message };
-  }
+  dbDeleteItem("menu_items", id);
+  return { success: true };
 }
 
 export function initMockProducts() {}

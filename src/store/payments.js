@@ -11,7 +11,12 @@ const paymentsStore = createStore({
 
 export async function loadPayments() {
   const all = getCollection("payments");
-  paymentsStore.setState({ payments: all, filteredPayments: all });
+  const normalized = all.map(p => ({
+    ...p,
+    payment_method: p.payment_method || p.method || "card",
+    payment_date: p.payment_date || p.created_at || new Date().toISOString(),
+  }));
+  paymentsStore.setState({ payments: normalized, filteredPayments: normalized });
 }
 
 export async function applyFilters({ status, search, date } = {}) {

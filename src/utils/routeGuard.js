@@ -6,8 +6,8 @@ const ROLES = {
 };
 
 const ROLE_HOME = {
-  [ROLES.ADMIN]: "/admin",
-  [ROLES.WAITER]: "/orders",
+  [ROLES.ADMIN]: "/dashboard",
+  [ROLES.WAITER]: "/tables",
   [ROLES.CHEF]: "/kitchen",
   [ROLES.CASHIER]: "/payments",
 };
@@ -15,13 +15,13 @@ const ROLE_HOME = {
 const ROLE_ACCESS = {
   "/admin": [ROLES.ADMIN],
   "/dashboard": [ROLES.ADMIN],
-  "/orders": [ROLES.ADMIN, ROLES.WAITER, ROLES.CHEF],
-  "/pos": [ROLES.ADMIN, ROLES.WAITER, ROLES.CHEF],
+  "/orders": [ROLES.ADMIN, ROLES.WAITER, ROLES.CHEF, ROLES.CASHIER],
+  "/pos": [ROLES.ADMIN, ROLES.WAITER, ROLES.CHEF, ROLES.CASHIER],
   "/kitchen": [ROLES.ADMIN, ROLES.CHEF],
   "/tables": [ROLES.ADMIN, ROLES.WAITER],
   "/payments": [ROLES.ADMIN, ROLES.CASHIER],
-  "/reservations": [ROLES.ADMIN],
-  "/inventory": [ROLES.ADMIN],
+  "/reservations": [ROLES.ADMIN, ROLES.WAITER],
+  "/inventory": [ROLES.ADMIN, ROLES.CHEF],
   "/reports": [ROLES.ADMIN],
   "/settings": [ROLES.ADMIN],
   "/menu": ["*"],
