@@ -8,10 +8,10 @@ class FormModal {
   }
 
   show({
-    title = "Form",
+    title = "Formulario",
     fields = [],
-    confirmText = "Save",
-    cancelText = "Cancel",
+    confirmText = "Guardar",
+    cancelText = "Cancelar",
     width = 420,
   } = {}) {
     return new Promise((resolve) => {

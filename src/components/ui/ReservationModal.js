@@ -2,36 +2,36 @@ import { formModal } from "./FormModal.js";
 import { tables } from "../../store/posData.js";
 
 class ReservationModal {
-  async show({ title = "New Reservation", preset = {} } = {}) {
+  async show({ title = "Nueva reserva", preset = {} } = {}) {
     const now = new Date();
     const dateDefault = preset.date || now.toISOString().split("T")[0];
     const timeDefault = preset.time || now.toTimeString().slice(0, 5);
 
     const tableOptions = [
-      { value: "", label: "-- Optional --" },
+      { value: "", label: "-- Opcional --" },
       ...tables.map((t) => ({
         value: t.id,
-        label: `Table ${t.number} (${t.seats} seats)`,
+        label: `Mesa ${t.number} (${t.seats} lugares)`,
       })),
     ];
 
     return formModal.show({
       title,
       width: 420,
-      confirmText: "Save",
+      confirmText: "Guardar",
       fields: [
         {
           id: "guestName",
-          label: "Guest Name",
+          label: "Nombre del huésped",
           type: "text",
           required: true,
           value: preset.guestName || "",
-          placeholder: "e.g. Juan Pérez",
+          placeholder: "Ej. Juan Pérez",
           fullWidth: false,
         },
         {
           id: "guestPhone",
-          label: "Phone",
+          label: "Teléfono",
           type: "text",
           value: preset.guestPhone || "",
           placeholder: "+52 55 1234 5678",
@@ -39,7 +39,7 @@ class ReservationModal {
         },
         {
           id: "date",
-          label: "Date",
+          label: "Fecha",
           type: "date",
           required: true,
           value: dateDefault,
@@ -47,7 +47,7 @@ class ReservationModal {
         },
         {
           id: "time",
-          label: "Time",
+          label: "Hora",
           type: "time",
           required: true,
           value: timeDefault,
@@ -55,7 +55,7 @@ class ReservationModal {
         },
         {
           id: "partySize",
-          label: "Party Size",
+          label: "Número de personas",
           type: "number",
           required: true,
           value: preset.partySize || 2,
@@ -64,7 +64,7 @@ class ReservationModal {
         },
         {
           id: "tableId",
-          label: "Table",
+          label: "Mesa",
           type: "select",
           value: preset.tableId || "",
           options: tableOptions,
@@ -72,10 +72,10 @@ class ReservationModal {
         },
         {
           id: "notes",
-          label: "Notes",
+          label: "Notas",
           type: "textarea",
           value: preset.notes || "",
-          placeholder: "Any special requests...",
+          placeholder: "Algún pedido especial...",
           fullWidth: true,
         },
       ],

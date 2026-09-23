@@ -17,6 +17,8 @@ import { getState as getReservationState, loadReservations } from "../../store/r
 import { hasAnyRole } from "../../utils/roleContext.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
 import { toast } from "../../components/ui/ToastManager.js";
+import { renderDropdown } from "../../components/ui/Dropdown.js";
+import { openPopover, closePopover } from "../../components/ui/Popover.js";
 import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
 let subView = "main";
@@ -73,11 +75,11 @@ function renderMain(el) {
   let html = '<div class="space-y-6">';
 
   html += '<div class="flex items-center justify-between">';
-  html += '<h2 class="text-xl font-semibold text-brand-900 font-display">Table Management</h2>';
+  html += '<h2 class="text-xl font-semibold text-brand-900 font-display">Gestión de Mesas</h2>';
   html += '<div class="flex gap-2">';
   if (hasAnyRole("admin")) {
     html +=
-      '<button data-action="manage-areas" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="settings" class="w-4 h-4"></i> Manage Areas</button>';
+      '<button data-action="manage-areas" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="settings" class="w-4 h-4"></i> Gestionar Áreas</button>';
   }
   html += "</div></div>";
 
@@ -93,15 +95,15 @@ function renderMain(el) {
     else if (t.status === "reserved") reservedCount++;
   });
   html +=
-    '<span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-success-500"></span> Available (' +
+    '<span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-success-500"></span> Disponible (' +
     availCount +
     ")</span>";
   html +=
-    '<span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-brand-500"></span> Occupied (' +
+    '<span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-brand-500"></span> Ocupada (' +
     occupiedCount +
     ")</span>";
   html +=
-    '<span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-accent-500"></span> Reserved (' +
+    '<span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-accent-500"></span> Reservada (' +
     reservedCount +
     ")</span>";
   html += "</div>";
@@ -144,7 +146,7 @@ function renderAreaFilters() {
       : "bg-white text-brand-600 border-brand-300 hover:bg-brand-50") +
     '">';
   html +=
-    '<span class="flex items-center gap-2">All <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand-200 text-brand-700 text-[10px] font-bold">' +
+    '<span class="flex items-center gap-2">Todas <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand-200 text-brand-700 text-[10px] font-bold">' +
     counts.all +
     "</span></span></button>";
 
@@ -172,7 +174,7 @@ function renderAreaFilters() {
       html +=
         '<button data-action="edit-area-inline" data-area-id="' +
         area.id +
-        '" class="px-2 py-2 rounded-full rounded-l-none border border-l-0 border-brand-300 bg-brand-500 text-white hover:bg-brand-600 cursor-pointer transition-colors" title="Edit ' +
+        '" class="px-2 py-2 rounded-full rounded-l-none border border-l-0 border-brand-300 bg-brand-500 text-white hover:bg-brand-600 cursor-pointer transition-colors" title="Editar ' +
         area.name +
         '"><i data-lucide="pencil" class="w-3 h-3"></i></button>';
     }
@@ -205,7 +207,7 @@ function renderAreaSection(area) {
   html +=
     '<span class="text-xs font-bold px-3 py-0.5 rounded-full bg-brand-100 text-brand-700">' +
     areaTables.length +
-    " table" +
+    " mesa" +
     (areaTables.length !== 1 ? "s" : "") +
     "</span>";
   html +=
@@ -217,9 +219,9 @@ function renderAreaSection(area) {
   if (isExpanded) {
     html += '<div class="p-5">';
     if (areaTables.length === 0) {
-      html += '<p class="text-center text-neutral-400 text-sm py-5">No tables in this area</p>';
+      html += '<p class="text-center text-neutral-400 text-sm py-5">No hay mesas en esta área</p>';
     } else {
-      html += '<div class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-5">';
+      html += '<div class="grid grid-cols-2 min-[420px]:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4 sm:gap-5">';
       areaTables.forEach(function (t) {
         html += renderTableShape(t);
       });
@@ -247,15 +249,15 @@ function renderTableShape(table) {
     " " +
     (statusStyles[table.status] || "") +
     '">';
-  html += '<span class="font-display text-2xl font-bold">' + table.number + "</span>";
-  html += '<span class="text-xs font-semibold">' + table.info + "</span>";
+  html += '<span class="font-display text-xl sm:text-2xl font-bold">' + table.number + "</span>";
+  html += '<span class="text-[11px] sm:text-xs font-semibold truncate w-full text-center px-1.5">' + table.info + "</span>";
   if (table.status === "reserved") {
     const res = getReservationForTable(table.id);
     if (res && res.guestName) {
-      html += '<span class="text-[11px] font-semibold opacity-80">' + res.guestName + "</span>";
+      html += '<span class="text-[11px] font-semibold opacity-80 truncate w-full text-center px-1.5">' + res.guestName + "</span>";
     }
   }
-  html += '<span class="text-[11px] opacity-70">' + table.seats + " seats</span>";
+  html += '<span class="text-[11px] opacity-70">' + table.seats + " asientos</span>";
   if (table.timer) {
     html +=
       '<span class="absolute bottom-3 text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/5">' +
@@ -277,7 +279,7 @@ function renderTableDetailCard(t) {
   html +=
     '<div class="flex items-center justify-between px-5 py-4 border-b border-brand-100 bg-brand-50">';
   html +=
-    '<h3 class="text-base font-semibold text-brand-900 font-display">Table ' + t.number + "</h3>";
+    '<h3 class="text-base font-semibold text-brand-900 font-display">Mesa ' + t.number + "</h3>";
   html += '<div class="flex items-center gap-2">' + badgeHtml;
   html +=
     '<button data-action="close-detail" class="w-8 h-8 border border-brand-300 rounded-lg flex items-center justify-center text-brand-500 hover:bg-brand-50 cursor-pointer bg-white"><i data-lucide="x" class="w-4 h-4"></i></button>';
@@ -285,17 +287,17 @@ function renderTableDetailCard(t) {
 
   html += '<div class="px-5 py-4">';
 
-  html += '<div class="grid grid-cols-3 gap-3 mb-4">';
+  html += '<div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">';
   html +=
-    '<div class="bg-brand-50 rounded-lg p-3 text-center"><span class="block text-[10px] font-bold text-brand-500 uppercase">Seats</span><span class="text-lg font-bold text-primary-800">' +
+    '<div class="bg-brand-50 rounded-lg p-3 text-center min-w-0"><span class="block text-[10px] font-bold text-brand-500 uppercase">Asientos</span><span class="text-lg font-bold text-primary-800">' +
     t.seats +
     "</span></div>";
   html +=
-    '<div class="bg-brand-50 rounded-lg p-3 text-center"><span class="block text-[10px] font-bold text-brand-500 uppercase">Status</span><span class="text-lg font-bold text-primary-800 capitalize">' +
+    '<div class="bg-brand-50 rounded-lg p-3 text-center min-w-0"><span class="block text-[10px] font-bold text-brand-500 uppercase">Estado</span><span class="text-lg font-bold text-primary-800 capitalize">' +
     t.status +
     "</span></div>";
   html +=
-    '<div class="bg-brand-50 rounded-lg p-3 text-center"><span class="block text-[10px] font-bold text-brand-500 uppercase">Info</span><span class="text-sm font-bold text-primary-800">' +
+    '<div class="col-span-2 sm:col-span-1 bg-brand-50 rounded-lg p-3 text-center min-w-0"><span class="block text-[10px] font-bold text-brand-500 uppercase">Información</span><span class="text-sm font-bold text-primary-800 truncate block">' +
     t.info +
     "</span></div>";
   html += "</div>";
@@ -303,101 +305,101 @@ function renderTableDetailCard(t) {
   if (t.status === "occupied" && order) {
     html += '<div class="border-t border-brand-200 pt-4 mt-4">';
     html +=
-      '<h4 class="text-sm font-semibold text-primary-700 mb-3">Active Order #' + order.id + "</h4>";
-    html += '<div class="grid grid-cols-3 gap-3 mb-4">';
+      '<h4 class="text-sm font-semibold text-primary-700 mb-3">Pedido Activo #' + order.id + "</h4>";
+    html += '<div class="grid grid-cols-3 gap-2 mb-4">';
     html +=
-      '<div class="text-center"><div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">Items</div><div class="text-xl font-bold text-brand-900">' +
+      '<div class="text-center min-w-0"><div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">Artículos</div><div class="text-lg sm:text-xl font-bold text-brand-900">' +
       order.items.length +
       "</div></div>";
     html +=
-      '<div class="text-center"><div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">Total</div><div class="text-xl font-bold text-brand-900">$' +
+      '<div class="text-center min-w-0"><div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">Total</div><div class="text-lg sm:text-xl font-bold text-brand-900 tabular-nums">$' +
       order.total.toFixed(2) +
       "</div></div>";
     html +=
-      '<div class="text-center"><div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">Time</div><div class="text-xl font-bold text-brand-900">' +
+      '<div class="text-center min-w-0"><div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">Hora</div><div class="text-lg sm:text-xl font-bold text-brand-900 truncate">' +
       (order.time || "\u2014") +
       "</div></div>";
     html += "</div>";
     if (hasAnyRole("admin", "waiter")) {
-      html += '<div class="flex gap-2 mt-3">';
+      html += '<div class="flex flex-wrap gap-2 mt-3">';
       html +=
         '<button data-action="view-order" data-order-id="' +
         order.id +
-        '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">View Order</button>';
+        '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Ver Pedido</button>';
       html +=
         '<button data-action="free-table" data-table-id="' +
         t.id +
-        '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Free Table</button>';
+        '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Liberar Mesa</button>';
       html += "</div>";
     }
     html += "</div>";
   } else if (t.status === "occupied") {
     html += '<div class="border-t border-brand-200 pt-4 mt-4">';
     html +=
-      '<p class="text-center text-neutral-500 text-sm mb-3">No active order found for this table.</p>';
+      '<p class="text-center text-neutral-500 text-sm mb-3">No se encontró un pedido activo para esta mesa.</p>';
     if (hasAnyRole("admin", "waiter")) {
-      html += '<div class="flex gap-2">';
+      html += '<div class="flex flex-wrap gap-2">';
       html +=
         '<button data-action="open-order" data-table-id="' +
         t.id +
-        '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Open Order</button>';
+        '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Abrir Pedido</button>';
       html +=
         '<button data-action="free-table" data-table-id="' +
         t.id +
-        '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Free Table</button>';
+        '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Liberar Mesa</button>';
       html += "</div>";
     }
     html += "</div>";
   } else if (t.status === "reserved") {
     const res = getReservationForTable(t.id);
     html += '<div class="border-t border-brand-200 pt-4 mt-4">';
-    html += '<h4 class="text-sm font-semibold text-primary-700 mb-3">Reservation</h4>';
+    html += '<h4 class="text-sm font-semibold text-primary-700 mb-3">Reservación</h4>';
     if (res) {
       html += '<div class="bg-accent-50 border border-accent-200 rounded-lg p-3 space-y-1">';
       html +=
         '<div class="text-sm font-semibold text-accent-800">' +
-        (res.guestName || "Guest") +
+        (res.guestName || "Invitado") +
         "</div>";
       if (res.guestPhone)
         html += '<div class="text-xs text-accent-600">' + res.guestPhone + "</div>";
       html +=
         '<div class="text-xs text-accent-600">' +
         res.date +
-        " at " +
+        " a las " +
         res.time +
         " &middot; " +
         res.partySize +
-        " guests</div>";
+        " invitados</div>";
       html += "</div>";
       if (hasAnyRole("admin", "waiter")) {
-        html += '<div class="flex gap-2 mt-3">';
+        html += '<div class="flex flex-wrap gap-2 mt-3">';
         html +=
           '<button data-action="seat-reservation" data-table-id="' +
           t.id +
           '" data-reservation-id="' +
           res.id +
-          '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Now</button>';
+          '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Sentar ahora</button>';
         html +=
           '<button data-action="cancel-reservation" data-table-id="' +
           t.id +
-          '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Cancel</button>';
+          '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Cancelar</button>';
         html += "</div>";
       }
     } else {
       html +=
-        '<div class="bg-info-50 border border-info-200 rounded-lg p-3 text-sm text-info-700">Reserved for ' +
+        '<div class="bg-info-50 border border-info-200 rounded-lg p-3 text-sm text-info-700">Reservada para ' +
         t.info +
         "</div>";
       if (hasAnyRole("admin", "waiter")) {
-        html += '<div class="flex gap-2 mt-3">';
+        html += '<div class="flex flex-wrap gap-2 mt-3">';
         html +=
           '<button data-action="seat-guests" data-table-id="' +
           t.id +
-          '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Now</button>';
+          '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Sentar ahora</button>';
         html +=
           '<button data-action="cancel-reservation" data-table-id="' +
           t.id +
-          '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Cancel</button>';
+          '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Cancelar</button>';
         html += "</div>";
       }
     }
@@ -405,16 +407,16 @@ function renderTableDetailCard(t) {
   } else {
     if (hasAnyRole("admin", "waiter")) {
       html += '<div class="border-t border-brand-200 pt-4 mt-4">';
-      html += '<h4 class="text-sm font-semibold text-primary-700 mb-3">Quick Actions</h4>';
-      html += '<div class="flex gap-2">';
+      html += '<h4 class="text-sm font-semibold text-primary-700 mb-3">Acciones Rápidas</h4>';
+      html += '<div class="flex flex-wrap gap-2">';
       html +=
         '<button data-action="seat-guests" data-table-id="' +
         t.id +
-        '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Guests</button>';
+        '" class="flex-1 min-w-[120px] h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Sentar Invitados</button>';
       html +=
         '<button data-action="reserve" data-table-id="' +
         t.id +
-        '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer">Reserve</button>';
+        '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer">Reservar</button>';
       html += "</div></div>";
     }
   }
@@ -430,15 +432,15 @@ function renderBadge(status) {
   if (status === "available") {
     cls = "bg-success-100 text-success-700";
     dotCls = "bg-success-500";
-    label = "Free";
+    label = "Libre";
   } else if (status === "occupied") {
     cls = "bg-brand-100 text-brand-700";
     dotCls = "bg-brand-500";
-    label = "Occupied";
+    label = "Ocupada";
   } else if (status === "reserved") {
     cls = "bg-accent-100 text-accent-700";
     dotCls = "bg-accent-500";
-    label = "Reserved";
+    label = "Reservada";
   }
   return (
     '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ' +
@@ -471,21 +473,21 @@ function renderDetail(el) {
   html += '<div class="flex items-center justify-between mb-5">';
   html += '<div class="flex items-center gap-3">';
   html +=
-    '<button data-action="back" class="flex items-center gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>';
+    '<button data-action="back" class="flex items-center gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="arrow-left" class="w-4 h-4"></i> Volver</button>';
   html +=
-    '<h2 class="text-xl font-semibold text-primary-700 font-display">Table ' + t.number + "</h2>";
+    '<h2 class="text-xl font-semibold text-primary-700 font-display">Mesa ' + t.number + "</h2>";
   html += "</div>";
   html += renderBadge(t.status);
   html += "</div>";
 
-  const gridCols = t.timer ? "grid-cols-5" : "grid-cols-4";
-  html += '<div class="grid ' + gridCols + ' gap-4 mb-5">';
+  const gridCols = t.timer ? "grid-cols-2 sm:grid-cols-5" : "grid-cols-2 sm:grid-cols-4";
+  html += '<div class="grid ' + gridCols + ' gap-3 sm:gap-4 mb-5">';
   html += renderInfoCard(
-    "Table",
+    "Mesa",
     '<span class="text-2xl font-bold text-brand-900">' + t.number + "</span>"
   );
   html += renderInfoCard(
-    "Area",
+    "Área",
     '<span class="flex items-center justify-center gap-2 text-sm font-semibold text-brand-900"><i data-lucide="' +
       getAreaIcon(t.area) +
       '" class="w-4 h-4"></i> ' +
@@ -493,16 +495,16 @@ function renderDetail(el) {
       "</span>"
   );
   html += renderInfoCard(
-    "Seats",
+    "Asientos",
     '<span class="text-2xl font-bold text-brand-900">' + t.seats + "</span>"
   );
   html += renderInfoCard(
-    "Status",
+    "Estado",
     '<span class="text-2xl font-bold text-brand-900 capitalize">' + t.status + "</span>"
   );
   if (t.timer) {
     html += renderInfoCard(
-      "Time",
+      "Hora",
       '<span class="text-2xl font-bold text-brand-900">' + t.timer + "</span>"
     );
   }
@@ -512,43 +514,43 @@ function renderDetail(el) {
     html += '<div class="text-center py-10">';
     html +=
       '<div class="w-16 h-16 rounded-full bg-success-100 text-success-600 inline-flex items-center justify-center mb-4"><i data-lucide="check-circle" class="w-8 h-8"></i></div>';
-    html += '<h3 class="text-lg text-neutral-800 mb-2">Table is free</h3>';
-    html += '<p class="text-neutral-500 mb-6">Ready for new guests</p>';
+    html += '<h3 class="text-lg text-neutral-800 mb-2">La mesa está libre</h3>';
+    html += '<p class="text-neutral-500 mb-6">Lista para nuevos invitados</p>';
     html +=
       '<button data-action="open-order" data-table-id="' +
       t.id +
-      '" class="flex items-center gap-2 mx-auto px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Open Order</button>';
+      '" class="flex items-center gap-2 mx-auto px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Abrir Pedido</button>';
     html += "</div>";
   } else if (t.status === "occupied" && order) {
     html +=
       '<div class="bg-white border border-brand-300 rounded-xl shadow-[0_2px_6px_rgba(114,49,23,0.08)] overflow-hidden mb-5">';
     html +=
       '<div class="flex items-center justify-between px-5 py-4 border-b border-brand-100 bg-brand-50">';
-    html += '<h3 class="text-sm font-bold text-brand-800">Active Order #' + order.id + "</h3>";
+    html += '<h3 class="text-sm font-bold text-brand-800">Pedido Activo #' + order.id + "</h3>";
     html += renderBadge(order.status);
     html += "</div>";
     html += '<div class="px-5 py-4">';
-    html += '<div class="grid grid-cols-3 gap-4 mb-5">';
+    html += '<div class="grid grid-cols-3 gap-2 mb-5">';
     html +=
-      '<div class="text-center"><div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">Items</div><div class="text-xl font-bold text-brand-900">' +
+      '<div class="text-center min-w-0"><div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">Artículos</div><div class="text-lg sm:text-xl font-bold text-brand-900">' +
       order.items.length +
       "</div></div>";
     html +=
-      '<div class="text-center"><div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">Total</div><div class="text-xl font-bold text-brand-900">$' +
+      '<div class="text-center min-w-0"><div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">Total</div><div class="text-lg sm:text-xl font-bold text-brand-900 tabular-nums">$' +
       order.total.toFixed(2) +
       "</div></div>";
     html +=
-      '<div class="text-center"><div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">Time</div><div class="text-xl font-bold text-brand-900">' +
+      '<div class="text-center min-w-0"><div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">Hora</div><div class="text-lg sm:text-xl font-bold text-brand-900 truncate">' +
       (order.time || "\u2014") +
       "</div></div>";
     html += "</div>";
-    html += '<div class="overflow-x-auto">';
-    html += '<table class="w-full border-collapse min-w-[300px]">';
+    html += "<div>";
+    html += '<table class="w-full border-collapse">';
     html += "<thead><tr>";
     html +=
-      '<th class="px-4 py-3 text-left text-xs font-bold text-brand-700 uppercase tracking-wider border-b-2 border-brand-200 bg-brand-50">Item</th>';
+      '<th class="px-4 py-3 text-left text-xs font-bold text-brand-700 uppercase tracking-wider border-b-2 border-brand-200 bg-brand-50">Artículo</th>';
     html +=
-      '<th class="px-4 py-3 text-center text-xs font-bold text-brand-700 uppercase tracking-wider border-b-2 border-brand-200 bg-brand-50">Qty</th>';
+      '<th class="px-4 py-3 text-center text-xs font-bold text-brand-700 uppercase tracking-wider border-b-2 border-brand-200 bg-brand-50">Cant.</th>';
     html +=
       '<th class="px-4 py-3 text-right text-xs font-bold text-brand-700 uppercase tracking-wider border-b-2 border-brand-200 bg-brand-50">Subtotal</th>';
     html += "</tr></thead>";
@@ -567,13 +569,13 @@ function renderDetail(el) {
     html += "</div></div>";
   } else if (t.status === "occupied") {
     html +=
-      '<div class="text-center py-10 text-neutral-500"><p>No active order found for this table.</p></div>';
+      '<div class="text-center py-10 text-neutral-500"><p>No se encontró un pedido activo para esta mesa.</p></div>';
   } else if (t.status === "reserved") {
     html += '<div class="text-center py-10">';
     html +=
       '<div class="w-16 h-16 rounded-full bg-accent-100 text-accent-600 inline-flex items-center justify-center mb-4"><i data-lucide="clock" class="w-8 h-8"></i></div>';
-    html += '<h3 class="text-lg text-neutral-800 mb-2">Reservation at ' + t.info + "</h3>";
-    html += '<p class="text-neutral-500">' + t.seats + " seats reserved</p>";
+    html += '<h3 class="text-lg text-neutral-800 mb-2">Reservación: ' + t.info + "</h3>";
+    html += '<p class="text-neutral-500">' + t.seats + " asientos reservados</p>";
     html += "</div>";
   }
 
@@ -582,26 +584,26 @@ function renderDetail(el) {
     actions =
       '<button data-action="view-order" data-order-id="' +
       order.id +
-      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="eye" class="w-4 h-4"></i> View Order</button>';
+      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="eye" class="w-4 h-4"></i> Ver Pedido</button>';
   } else if (t.status === "occupied" && !order) {
     actions =
       '<button data-action="open-order" data-table-id="' +
       t.id +
-      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Open Order</button>';
+      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Abrir Pedido</button>';
   } else if (t.status === "reserved") {
     actions =
       '<button data-action="cancel-reservation" data-table-id="' +
       t.id +
-      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="x" class="w-4 h-4"></i> Cancel</button>';
+      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="x" class="w-4 h-4"></i> Cancelar</button>';
     actions +=
       '<button data-action="seat-guests" data-table-id="' +
       t.id +
-      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="users" class="w-4 h-4"></i> Seat Guests</button>';
+      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="users" class="w-4 h-4"></i> Sentar Invitados</button>';
   }
 
   if (actions) {
     html +=
-      '<div class="flex gap-5 p-5 bg-brand-50 border-t border-brand-200 rounded-b-xl">' +
+      '<div class="flex flex-wrap gap-3 p-4 sm:p-5 bg-brand-50 border-t border-brand-200 rounded-b-xl">' +
       actions +
       "</div>";
   }
@@ -612,8 +614,8 @@ function renderDetail(el) {
 
 function renderInfoCard(label, valueHtml) {
   return (
-    '<div class="bg-white border border-brand-200 rounded-lg p-4 text-center">' +
-    '<div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">' +
+    '<div class="bg-white border border-brand-200 rounded-lg p-3 sm:p-4 text-center min-w-0">' +
+    '<div class="text-[11px] font-bold uppercase text-secondary-500 mb-1 truncate">' +
     label +
     "</div>" +
     valueHtml +
@@ -629,11 +631,11 @@ function renderManageAreas(el) {
   html += '<div class="flex items-center justify-between mb-5">';
   html += '<div class="flex items-center gap-3">';
   html +=
-    '<button data-action="back" class="flex items-center gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>';
-  html += '<h2 class="text-xl font-semibold text-primary-700 font-display">Manage Areas</h2>';
+    '<button data-action="back" class="flex items-center gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="arrow-left" class="w-4 h-4"></i> Volver</button>';
+  html += '<h2 class="text-xl font-semibold text-primary-700 font-display">Gestionar Áreas</h2>';
   html += "</div></div>";
 
-  html += '<div class="flex gap-6 items-start">';
+  html += '<div class="flex flex-col lg:flex-row gap-6 items-stretch lg:items-start">';
 
   html += '<div class="flex-1 min-w-0">';
 
@@ -659,7 +661,7 @@ function renderManageAreas(el) {
     html +=
       '<span data-action="change-area-icon" data-area-id="' +
       area.id +
-      '" class="cursor-pointer p-1 rounded-md hover:bg-brand-50 inline-flex items-center" title="Change icon"><i data-lucide="' +
+      '" class="cursor-pointer p-1 rounded-md hover:bg-brand-50 inline-flex items-center" title="Cambiar icono"><i data-lucide="' +
       icon +
       '" class="w-5 h-5 text-brand-500"></i></span>';
 
@@ -671,7 +673,7 @@ function renderManageAreas(el) {
       html +=
         '<button data-action="save-area-name" data-area-id="' +
         area.id +
-        '" class="h-7 px-2 text-[11px] font-semibold rounded bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Save</button>';
+        '" class="h-7 px-2 text-[11px] font-semibold rounded bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Guardar</button>';
     } else {
       html +=
         '<span data-action="rename-area" data-area-id="' +
@@ -694,14 +696,14 @@ function renderManageAreas(el) {
       '" class="p-2 rounded hover:bg-error-50 cursor-pointer bg-transparent border-0 text-error-600 ' +
       (areaTables.length > 0 ? "opacity-40 cursor-not-allowed" : "") +
       '" ' +
-      (areaTables.length > 0 ? 'disabled title="Reassign tables first"' : "") +
+      (areaTables.length > 0 ? 'disabled title="Reasigna las mesas primero"' : "") +
       '><i data-lucide="trash-2" class="w-4 h-4"></i></button>';
     html += "</div></div>";
 
     if (isExpanded) {
       html += '<div class="px-5 pb-5">';
       if (areaTables.length === 0) {
-        html += '<p class="text-neutral-400 text-xs py-2">No tables assigned</p>';
+        html += '<p class="text-neutral-400 text-xs py-2">No hay mesas asignadas</p>';
       } else {
         areaTables.forEach(function (t) {
           html +=
@@ -715,7 +717,7 @@ function renderManageAreas(el) {
           html +=
             '<span class="flex-1 text-sm font-medium text-neutral-700">' +
             t.seats +
-            " seats \u2014 " +
+            " asientos \u2014 " +
             t.info +
             "</span>";
           html +=
@@ -736,7 +738,7 @@ function renderManageAreas(el) {
           html +=
             '<button data-action="delete-table" data-table-id="' +
             t.id +
-            '" class="p-1.5 rounded hover:bg-error-50 cursor-pointer bg-transparent border-0 text-error-500" title="Delete table"><i data-lucide="trash-2" class="w-4 h-4"></i></button>';
+            '" class="p-1.5 rounded hover:bg-error-50 cursor-pointer bg-transparent border-0 text-error-500" title="Eliminar mesa"><i data-lucide="trash-2" class="w-4 h-4"></i></button>';
           html += "</div>";
         });
       }
@@ -748,35 +750,41 @@ function renderManageAreas(el) {
 
   html += "</div>";
 
-  html += '<div class="w-72 shrink-0 space-y-4 sticky top-0">';
+  html += '<div class="w-full lg:w-72 shrink-0 space-y-4 lg:sticky lg:top-0">';
   html += '<div class="bg-white border border-brand-200 rounded-xl overflow-hidden">';
   html +=
-    '<div class="px-4 py-3 bg-neutral-50 border-b border-brand-100"><span class="text-xs font-bold text-secondary-600">Add New Table</span></div>';
+    '<div class="px-4 py-3 bg-neutral-50 border-b border-brand-100"><span class="text-xs font-bold text-secondary-600">Agregar Nueva Mesa</span></div>';
   html += '<div class="flex flex-col gap-3 p-4">';
   html +=
-    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Area<select id="new-table-area" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white">';
-  areas.forEach(function (a) {
-    html += '<option value="' + a.id + '">' + a.name + "</option>";
-  });
-  html += "</select></label>";
+    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Área' +
+    renderDropdown({
+      id: "new-table-area",
+      placeholder: "Seleccionar área",
+      fullWidth: true,
+      value: areas.length ? areas[0].id : "",
+      options: areas.map(function (a) {
+        return { value: a.id, label: a.name, icon: a.icon || "map-pin" };
+      }),
+    }) +
+    "</label>";
   html +=
-    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Seats<input type="number" id="new-table-seats" min="1" max="20" value="4" class="w-full border border-brand-200 rounded-md px-3 py-2 text-sm bg-white" /></label>';
+    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Asientos<input type="number" id="new-table-seats" min="1" max="20" value="4" class="w-full border border-brand-200 rounded-md px-3 py-2 text-sm bg-white" /></label>';
   html +=
-    '<button data-action="create-table" class="flex items-center justify-center gap-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Add Table</button>';
+    '<button data-action="create-table" class="flex items-center justify-center gap-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Agregar Mesa</button>';
   html += "</div></div>";
 
   html += '<div class="bg-white border border-brand-200 rounded-xl overflow-hidden">';
   html +=
-    '<div class="px-4 py-3 bg-neutral-50 border-b border-brand-100"><span class="text-xs font-bold text-secondary-600">Add New Area</span></div>';
+    '<div class="px-4 py-3 bg-neutral-50 border-b border-brand-100"><span class="text-xs font-bold text-secondary-600">Agregar Nueva Área</span></div>';
   html += '<div class="flex flex-col gap-3 p-4">';
   html +=
-    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Area Name<input type="text" id="new-area-name" placeholder="e.g. Rooftop" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white" /></label>';
+    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Nombre del Área<input type="text" id="new-area-name" placeholder="Ej. Azotea" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white" /></label>';
   html +=
-    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Icon<button type="button" data-action="open-new-area-icon-picker" class="w-10 h-10 rounded-lg border border-brand-200 flex items-center justify-center cursor-pointer bg-white hover:bg-brand-50"><i data-lucide="' +
+    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Icono<button type="button" data-action="open-new-area-icon-picker" class="w-10 h-10 rounded-lg border border-brand-200 flex items-center justify-center cursor-pointer bg-white hover:bg-brand-50"><i data-lucide="' +
     (editingAreaIcon || "home") +
     '" class="w-5 h-5 text-brand-500"></i></button></label>';
   html +=
-    '<button data-action="save-new-area" class="flex items-center justify-center gap-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Create Area</button>';
+    '<button data-action="save-new-area" class="flex items-center justify-center gap-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Crear Área</button>';
   html += "</div></div>";
   html += "</div>";
 
@@ -816,43 +824,35 @@ function getTableStatusClasses(status) {
 function renderIconPickerPopup(targetEl, iconName, context, areaId) {
   if (!targetEl || !iconName) return;
 
-  const rect = targetEl.getBoundingClientRect();
-  const popup = document.createElement("div");
-  popup.className =
-    "fixed z-100 bg-white border border-brand-200 rounded-lg p-3 shadow-[0_10px_25px_rgba(0,0,0,0.15)] grid grid-cols-5 gap-2";
-  popup.style.top = rect.bottom + 4 + "px";
-  popup.style.left = rect.left + "px";
-  popup.setAttribute("data-icon-picker-context", context || "area");
-  if (areaId) popup.setAttribute("data-icon-picker-area-id", areaId);
-  popup.innerHTML = ICON_LIST.map(function (icon) {
-    return (
-      '<button data-icon-pick="' +
-      icon +
-      '" data-picker-context="' +
-      (context || "area") +
-      '" data-area-id="' +
-      (areaId || "") +
-      '" class="inline-flex items-center justify-center p-2 border border-brand-100 rounded-md bg-white cursor-pointer transition-colors hover:bg-brand-50 hover:border-brand-300 ' +
-      (icon === iconName ? "border-brand-400 bg-brand-50" : "") +
-      '"><i data-lucide="' +
-      icon +
-      '" class="w-[18px] h-[18px]"></i></button>'
-    );
-  }).join("");
-  document.body.appendChild(popup);
-  window.createIcons();
+  const pickerCtx = context || "area";
+  const content =
+    '<div class="bg-white border border-brand-200 rounded-lg p-2 shadow-[0_10px_25px_rgba(0,0,0,0.15)] grid grid-cols-5 gap-1.5" data-icon-picker-context="' +
+    pickerCtx +
+    '">' +
+    ICON_LIST.map(function (icon) {
+      return (
+        '<button data-icon-pick="' +
+        icon +
+        '" data-picker-context="' +
+        pickerCtx +
+        '" data-area-id="' +
+        (areaId || "") +
+        '" class="inline-flex items-center justify-center p-2 border border-brand-100 rounded-md bg-white cursor-pointer transition-colors hover:bg-brand-50 hover:border-brand-300 ' +
+        (icon === iconName ? "border-brand-400 bg-brand-50" : "") +
+        '"><i data-lucide="' +
+        icon +
+        '" class="w-[18px] h-[18px]"></i></button>'
+      );
+    }).join("") +
+    "</div>";
 
-  function closePopup() {
-    popup.remove();
-    openPickerAreaId = null;
-    document.removeEventListener("click", closeHandler);
-  }
-
-  const closeHandler = function (e) {
-    if (!popup.contains(e.target)) {
-      closePopup();
-    }
-  };
+  const popup = openPopover({
+    anchor: targetEl,
+    className: "z-[100]",
+    gap: 6,
+    content: content,
+  });
+  if (!popup) return;
 
   popup.addEventListener("click", function (e) {
     const iconBtn = e.target.closest("[data-icon-pick]");
@@ -860,33 +860,30 @@ function renderIconPickerPopup(targetEl, iconName, context, areaId) {
     e.stopPropagation();
 
     const iconName2 = iconBtn.getAttribute("data-icon-pick");
-    const pickerCtx = iconBtn.getAttribute("data-picker-context");
+    const pickerCtx2 = iconBtn.getAttribute("data-picker-context");
     const ipaid2 = iconBtn.getAttribute("data-area-id");
 
-    closePopup();
+    closePopover();
+    openPickerAreaId = null;
 
-    if (pickerCtx === "area" && ipaid2) {
+    if (pickerCtx2 === "area" && ipaid2) {
       const ipa = areas.find(function (a) {
         return a.id === ipaid2;
       });
       if (ipa) ipa.icon = iconName2;
       editingAreaIcon = iconName2;
       renderManageAreas(document.getElementById("current-view"));
-    } else if (pickerCtx === "inline" && ipaid2) {
+    } else if (pickerCtx2 === "inline" && ipaid2) {
       const ipa2 = areas.find(function (a) {
         return a.id === ipaid2;
       });
       if (ipa2) ipa2.icon = iconName2;
       renderInlineAreaForm(ipaid2, "edit");
-    } else if (pickerCtx === "new-area") {
+    } else if (pickerCtx2 === "new-area") {
       editingAreaIcon = iconName2;
       renderManageAreas(document.getElementById("current-view"));
     }
   });
-
-  setTimeout(function () {
-    document.addEventListener("click", closeHandler);
-  }, 0);
 }
 
 /* ── Inline Area Form ── */
@@ -910,11 +907,11 @@ function renderInlineAreaForm(areaId, mode) {
   let html =
     '<div class="flex gap-3 items-end bg-white border border-brand-300 rounded-xl p-4 shadow-sm mb-4">';
   html +=
-    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Name<input type="text" id="inline-area-name" value="' +
+    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Nombre<input type="text" id="inline-area-name" value="' +
     area.name +
     '" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white" /></label>';
   html +=
-    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Icon<button type="button" data-action="open-inline-icon-picker" data-area-id="' +
+    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Icono<button type="button" data-action="open-inline-icon-picker" data-area-id="' +
     areaId +
     '" class="w-10 h-10 rounded-lg border border-brand-200 flex items-center justify-center cursor-pointer bg-white hover:bg-brand-50"><i data-lucide="' +
     area.icon +
@@ -923,10 +920,10 @@ function renderInlineAreaForm(areaId, mode) {
     html +=
       '<button data-action="save-inline-area" data-area-id="' +
       areaId +
-      '" class="flex items-center gap-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="check" class="w-4 h-4"></i> Save</button>';
+      '" class="flex items-center gap-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="check" class="w-4 h-4"></i> Guardar</button>';
   }
   html +=
-    '<button data-action="cancel-inline-area" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer">Cancel</button>';
+    '<button data-action="cancel-inline-area" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer">Cancelar</button>';
   html += "</div>";
   form.innerHTML = html;
   window.createIcons();
@@ -987,9 +984,7 @@ function setupEvents(el) {
       editingAreaId = null;
       editingAreaIcon = null;
       openPickerAreaId = null;
-      document.querySelectorAll(".fixed.z-100").forEach(function (p) {
-        p.remove();
-      });
+      closePopover();
       renderMain(el);
       return;
     }
@@ -1045,13 +1040,13 @@ function setupEvents(el) {
         return t.area === daid;
       });
       if (daTables.length > 0) {
-        toast.warning("Cannot Delete", "Area has tables. Remove them first.");
+        toast.warning("No se puede eliminar", "El área tiene mesas. Elimínalas primero.");
         return;
       }
       if (
         await confirmModal.show({
-          title: "Delete Area",
-          message: "Are you sure you want to delete this area?",
+          title: "Eliminar Área",
+          message: "¿Seguro que deseas eliminar esta área?",
         })
       ) {
         await apiDeleteArea(daid);
@@ -1061,9 +1056,7 @@ function setupEvents(el) {
         editingAreaId = null;
         editingAreaIcon = null;
         openPickerAreaId = null;
-        document.querySelectorAll(".fixed.z-100").forEach(function (p) {
-          p.remove();
-        });
+        closePopover();
         renderManageAreas(el);
       }
       return;
@@ -1075,8 +1068,8 @@ function setupEvents(el) {
       const dtid = deleteTable.getAttribute("data-table-id");
       if (
         await confirmModal.show({
-          title: "Delete Table",
-          message: "Are you sure you want to delete this table?",
+          title: "Eliminar Mesa",
+          message: "¿Seguro que deseas eliminar esta mesa?",
         })
       ) {
         await apiDeleteTable(dtid);
@@ -1094,9 +1087,7 @@ function setupEvents(el) {
       editingAreaId = null;
       editingAreaIcon = null;
       openPickerAreaId = null;
-      document.querySelectorAll(".fixed.z-100").forEach(function (p) {
-        p.remove();
-      });
+      closePopover();
       renderManageAreas(el);
       return;
     }
@@ -1167,7 +1158,7 @@ function setupEvents(el) {
           return tbl.id === rid;
         });
         const data = await reservationModal.show({
-          title: "Reserve Table",
+          title: "Reservar Mesa",
           preset: { tableId: rid, partySize: rt ? rt.seats : 4 },
         });
         if (data) {
@@ -1221,9 +1212,7 @@ function setupEvents(el) {
       const raid = renameArea.getAttribute("data-area-id");
       editingAreaId = raid;
       openPickerAreaId = null;
-      document.querySelectorAll(".fixed.z-100").forEach(function (p) {
-        p.remove();
-      });
+      closePopover();
       renderManageAreas(el);
       return;
     }
@@ -1237,16 +1226,12 @@ function setupEvents(el) {
       });
       if (openPickerAreaId === ciid) {
         openPickerAreaId = null;
-        document.querySelectorAll(".fixed.z-100").forEach(function (p) {
-          p.remove();
-        });
+        closePopover();
         return;
       }
       openPickerAreaId = ciid;
       editingAreaId = null;
-      document.querySelectorAll(".fixed.z-100").forEach(function (p) {
-        p.remove();
-      });
+      closePopover();
       renderIconPickerPopup(changeIcon, cia ? cia.icon : "home", "area", ciid);
       return;
     }
@@ -1283,9 +1268,7 @@ function setupEvents(el) {
       editingAreaId = null;
       editingAreaIcon = null;
       openPickerAreaId = null;
-      document.querySelectorAll(".fixed.z-100").forEach(function (p) {
-        p.remove();
-      });
+      closePopover();
       renderManageAreas(el);
       return;
     }
@@ -1297,9 +1280,7 @@ function setupEvents(el) {
       const iia = areas.find(function (a) {
         return a.id === iiaid;
       });
-      document.querySelectorAll(".fixed.z-100").forEach(function (p) {
-        p.remove();
-      });
+      closePopover();
       renderIconPickerPopup(openInlineIconPicker, iia ? iia.icon : "home", "inline", iiaid);
       return;
     }
@@ -1307,9 +1288,7 @@ function setupEvents(el) {
     const openNewAreaIconPicker = target.closest('[data-action="open-new-area-icon-picker"]');
     if (openNewAreaIconPicker) {
       e.stopPropagation();
-      document.querySelectorAll(".fixed.z-100").forEach(function (p) {
-        p.remove();
-      });
+      closePopover();
       renderIconPickerPopup(openNewAreaIconPicker, editingAreaIcon || "home", "new-area", null);
       return;
     }
@@ -1321,9 +1300,7 @@ function setupEvents(el) {
       const pickerContext = iconPick.getAttribute("data-picker-context");
       const ipaid = iconPick.getAttribute("data-area-id");
 
-      document.querySelectorAll(".fixed.z-100").forEach(function (p) {
-        p.remove();
-      });
+      closePopover();
       openPickerAreaId = null;
 
       if (pickerContext === "area" && ipaid) {
@@ -1358,7 +1335,7 @@ function setupEvents(el) {
         seats: 4,
         area: ataid,
         status: "available",
-        info: "Free",
+        info: "Libre",
         timer: null,
       });
       renderManageAreas(el);
@@ -1425,9 +1402,7 @@ function setupEvents(el) {
     if (e.key === "Escape") {
       editingAreaId = null;
       openPickerAreaId = null;
-      document.querySelectorAll(".fixed.z-100").forEach(function (p) {
-        p.remove();
-      });
+      closePopover();
       renderManageAreas(el);
     }
   };

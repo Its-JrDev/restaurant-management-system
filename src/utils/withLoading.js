@@ -173,7 +173,7 @@ function _dataTable(opts) {
   const columns = opts.columns || [];
   const rowCount = opts.rows || 5;
   const padding = opts.padding || "px-5 py-3";
-  let html = '<div class="overflow-x-auto"><table class="w-full">';
+  let html = '<div><table class="w-full">';
   html +=
     '<thead><tr class="text-xs font-bold text-brand-700 uppercase tracking-wide border-b-2 border-brand-200 bg-brand-50">';
   columns.forEach(function () {
@@ -344,7 +344,7 @@ const Skeletons = {
     html += _badge("70px");
     html += "</div>";
     let ordersTable =
-      '<div class="overflow-x-auto"><table class="w-full table-fixed text-sm text-left">';
+      '<div><table class="w-full table-fixed text-sm text-left">';
     ordersTable +=
       '<thead><tr class="text-xs font-bold text-brand-700 uppercase tracking-wide border-b-2 border-brand-300 bg-brand-50">';
     ["14%", "14%", "18%", "14%", "14%", "16%", "10%"].forEach(function (w) {
@@ -472,9 +472,9 @@ const Skeletons = {
     html += Skeleton({ variant: "text", width: "60%" });
     html += "</div></div>";
     // Tabla directa.
-    let table = '<div class="overflow-x-auto"><table class="w-full">';
+    let table = '<div><table class="w-full">';
     table += '<thead><tr class="border-b-2 border-brand-100">';
-    ["Item", "Unit", "Stock Level", "Min Stock", "Status", "Updated", "Actions"].forEach(
+    ["Artículo", "Unidad", "Nivel de stock", "Stock mínimo", "Estado", "Actualizado", "Acciones"].forEach(
       function () {
         table +=
           '<th class="px-5 py-3 text-left text-xs font-bold text-brand-700 uppercase tracking-wider bg-brand-50">' +
@@ -495,9 +495,9 @@ const Skeletons = {
         '<td class="px-5 py-3.5 text-sm text-brand-600">' +
         Skeleton({ variant: "text", width: "40px" }) +
         "</td>";
-      // Stock Level: barra fina h-2 + número a la derecha (min-w-[160px]).
+      // Stock Level: barra fina h-2 + número a la derecha.
       table +=
-        '<td class="px-5 py-3.5 min-w-[160px]"><div class="flex items-center gap-2">' +
+        '<td class="px-5 py-3.5"><div class="flex items-center gap-2">' +
         '<div class="flex-1 h-2 rounded-full bg-brand-100 overflow-hidden">' +
         '<div class="bg-brand-300 h-full rounded-full animate-pulse" style="width:100%"></div></div>' +
         '<span class="h-3 rounded bg-brand-200 animate-pulse min-w-[40px] text-right" style="width:40px"></span></div></td>';
@@ -549,7 +549,7 @@ const Skeletons = {
     html += "</div>";
     // Tabla directa (8 columnas).
     html +=
-      '<div class="bg-white border border-brand-300 rounded-xl shadow-sm overflow-hidden"><div class="overflow-x-auto"><table class="w-full table-fixed text-sm text-left">';
+      '<div class="bg-white border border-brand-300 rounded-xl shadow-sm overflow-hidden"><div><table class="w-full table-fixed text-sm text-left">';
     html +=
       '<thead><tr class="text-xs font-bold uppercase tracking-wider text-brand-700 bg-brand-50 border-b-2 border-brand-300">';
     ["12%", "12%", "16%", "12%", "12%", "14%", "12%", "10%"].forEach(function (w) {
@@ -638,7 +638,7 @@ const Skeletons = {
     html += Skeleton({ variant: "rect", width: "160px", height: 38, class: "rounded-lg" });
     html += "</div></div>";
     // Tabla directa (9 columnas).
-    let table = '<div class="overflow-x-auto"><table class="w-full table-fixed">';
+    let table = '<div><table class="w-full table-fixed">';
     table += '<thead><tr class="border-b-2 border-brand-100">';
     ["12%", "12%", "12%", "14%", "12%", "12%", "12%", "12%", "12%"].forEach(function (w) {
       table +=
@@ -706,10 +706,10 @@ const Skeletons = {
     searchHeader += Skeleton({ variant: "rect", width: "140px", height: 36, class: "rounded-lg" });
     searchHeader += "</div></div>";
     html += searchHeader;
-    let table = '<div class="overflow-x-auto"><table class="w-full">';
+    let table = '<div><table class="w-full">';
     table +=
       '<thead><tr class="text-xs font-bold text-brand-700 uppercase tracking-wide border-b-2 border-brand-100 bg-brand-50">';
-    ["Code", "Guest", "Date", "Time", "Party", "Table", "Status", "Actions"].forEach(function () {
+    ["Código", "Huésped", "Fecha", "Hora", "Personas", "Mesa", "Estado", "Acciones"].forEach(function () {
       table +=
         '<th class="px-5 py-3 text-left">' + Skeleton({ variant: "text", width: "60%" }) + "</th>";
     });
@@ -898,6 +898,28 @@ const Skeletons = {
     html += _sectionCard("100px", fields2);
     html += _actionBar({ left: ["130px", "140px"] });
     html += "</div>";
+    return html;
+  },
+
+  notifications() {
+    let html = '<div class="space-y-5">';
+    html += _pageHeader({ titleWidth: "140px", rightButtons: ["120px", "120px"] });
+    html += '<div class="flex flex-wrap gap-2">' + _pill() + _pill() + _pill() + "</div>";
+    html += '<div class="bg-white border border-brand-300 rounded-xl overflow-hidden">';
+    for (let i = 0; i < 6; i++) {
+      html +=
+        '<div class="flex items-start gap-3 px-4 py-3.5 border-b border-brand-100 ' +
+        (i % 2 === 1 ? "bg-brand-50/40" : "") +
+        '">';
+      html += Skeleton({ variant: "circle", size: 32 });
+      html += '<div class="flex-1 space-y-2">';
+      html += Skeleton({ variant: "text", width: "45%" });
+      html += Skeleton({ variant: "text", width: "75%" });
+      html += "</div>";
+      html += Skeleton({ variant: "text", width: "60px" });
+      html += "</div>";
+    }
+    html += "</div></div>";
     return html;
   },
 

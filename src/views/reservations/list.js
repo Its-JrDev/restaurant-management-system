@@ -8,10 +8,10 @@ import { toast } from "../../components/ui/ToastManager.js";
 import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
 const STATUS_LABELS = {
-  pending: "Pending",
-  confirmed: "Confirmed",
-  cancelled: "Cancelled",
-  completed: "Completed",
+  pending: "Pendiente",
+  confirmed: "Confirmado",
+  cancelled: "Cancelado",
+  completed: "Completado",
 };
 
 const STATUS_COLORS = {
@@ -87,26 +87,26 @@ function renderList(el) {
   let html = '<div class="space-y-5">';
 
   html += '<div class="flex items-center justify-between">';
-  html += '<div><h2 class="text-xl font-semibold text-primary-700 font-display">Reservations</h2>';
+  html += '<div><h2 class="text-xl font-semibold text-primary-700 font-display">Reservas</h2>';
   html +=
     '<p class="text-sm text-secondary-500 mt-0.5">' +
     reservations.length +
-    " reservation" +
+    " reserva" +
     (reservations.length !== 1 ? "s" : "") +
     "</p></div>";
   if (hasAnyRole("admin", "waiter")) {
     html +=
-      '<button data-action="new-reservation" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> New Reservation</button>';
+      '<button data-action="new-reservation" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> Nueva reserva</button>';
   }
   html += "</div>";
 
   html += '<div class="flex flex-wrap gap-2">';
   const tabs = [
-    { key: "all", label: "All" },
-    { key: "pending", label: "Pending" },
-    { key: "confirmed", label: "Confirmed" },
-    { key: "cancelled", label: "Cancelled" },
-    { key: "completed", label: "Completed" },
+    { key: "all", label: "Todas" },
+    { key: "pending", label: "Pendiente" },
+    { key: "confirmed", label: "Confirmada" },
+    { key: "cancelled", label: "Cancelada" },
+    { key: "completed", label: "Completada" },
   ];
   tabs.forEach(function (tab) {
     const isActive = activeFilter === tab.key;
@@ -136,7 +136,7 @@ function renderList(el) {
   html +=
     '<input type="text" id="res-search" value="' +
     searchQuery +
-    '" placeholder="Search by code, guest, or phone..." class="flex-1 text-sm text-neutral-900 outline-none border-none bg-transparent placeholder:text-secondary-400" />';
+    '" placeholder="Buscar por código, huésped o teléfono..." class="flex-1 text-sm text-neutral-900 outline-none border-none bg-transparent placeholder:text-secondary-400" />';
   if (searchQuery) {
     html +=
       '<button data-action="clear-search" class="text-secondary-400 hover:text-secondary-600 cursor-pointer bg-transparent border-none p-0"><i data-lucide="x" class="w-4 h-4"></i></button>';
@@ -147,10 +147,10 @@ function renderList(el) {
   html += "</div>";
   html += "</div>";
 
-  html += '<div class="overflow-x-auto">';
+  html += '<div class="hidden md:block">';
   html += '<table class="w-full">';
   html += '<thead><tr class="border-b-2 border-brand-100">';
-  const cols = ["Code", "Guest", "Date", "Time", "Party", "Table", "Status", "Actions", ""];
+  const cols = ["Código", "Huésped", "Fecha", "Hora", "Comensales", "Mesa", "Estado", "Acciones", ""];
   cols.forEach(function (c) {
     html +=
       '<th class="px-5 py-3 text-left text-xs font-bold text-brand-700 uppercase tracking-wider bg-brand-50">' +
@@ -166,11 +166,11 @@ function renderList(el) {
     html += '<i data-lucide="calendar-x" class="w-10 h-10 text-secondary-300"></i>';
     html +=
       '<p class="text-sm text-secondary-400">' +
-      (searchQuery ? "No reservations match your search" : "No reservations found") +
+      (searchQuery ? "Ninguna reserva coincide con tu búsqueda" : "No se encontraron reservas") +
       "</p>";
     if (searchQuery) {
       html +=
-        '<button data-action="clear-search" class="text-sm text-primary-600 hover:text-primary-700 font-semibold cursor-pointer bg-transparent border-none">Clear search</button>';
+        '<button data-action="clear-search" class="text-sm text-primary-600 hover:text-primary-700 font-semibold cursor-pointer bg-transparent border-none">Limpiar búsqueda</button>';
     }
     html += "</div></td></tr>";
   } else {
@@ -197,7 +197,7 @@ function renderList(el) {
       html +=
         '<td class="px-5 py-3.5"><button data-action="view-detail" data-id="' +
         r.id +
-        '" class="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-transparent text-brand-500 hover:bg-brand-100 border border-brand-300 cursor-pointer transition-colors"><i data-lucide="eye" class="w-3.5 h-3.5"></i> View</button></td>';
+        '" class="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-transparent text-brand-500 hover:bg-brand-100 border border-brand-300 cursor-pointer transition-colors"><i data-lucide="eye" class="w-3.5 h-3.5"></i> Ver</button></td>';
       if ((r.status === "pending" || r.status === "confirmed") && hasAnyRole("admin", "waiter")) {
         html +=
           '<td class="px-5 py-3.5"><button data-action="cancel" data-id="' +
@@ -210,7 +210,72 @@ function renderList(el) {
     });
   }
 
-  html += "</tbody></table></div></div>";
+  html += "</tbody></table></div>";
+
+  html += '<div class="md:hidden p-4 space-y-3">';
+  if (reservations.length === 0) {
+    html += '<div class="flex flex-col items-center gap-2 py-10 text-center">';
+    html += '<i data-lucide="calendar-x" class="w-10 h-10 text-secondary-300"></i>';
+    html +=
+      '<p class="text-sm text-secondary-400">' +
+      (searchQuery ? "Ninguna reserva coincide con tu búsqueda" : "No se encontraron reservas") +
+      "</p>";
+    if (searchQuery) {
+      html +=
+        '<button data-action="clear-search" class="text-sm text-primary-600 hover:text-primary-700 font-semibold cursor-pointer bg-transparent border-none">Limpiar búsqueda</button>';
+    }
+    html += "</div>";
+  } else {
+    reservations.forEach(function (r) {
+      html +=
+        '<div class="bg-white border border-brand-300 rounded-xl p-4 shadow-sm space-y-3">';
+      html += '<div class="flex items-start justify-between gap-2">';
+      html += '<div class="min-w-0">';
+      html += '<p class="font-semibold text-brand-700 text-sm break-all">' + r.code + "</p>";
+      if (r.guestPhone)
+        html += '<p class="text-xs text-secondary-400 mt-0.5">' + r.guestPhone + "</p>";
+      html += "</div>";
+      html += '<span class="shrink-0">' + statusBadge(r.status) + "</span>";
+      html += "</div>";
+      html += '<div class="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">';
+      html +=
+        '<div class="min-w-0"><span class="block text-[11px] font-bold uppercase tracking-wider text-secondary-500">Huésped</span><span class="font-semibold text-brand-900 truncate block">' +
+        r.guestName +
+        "</span></div>";
+      html +=
+        '<div class="min-w-0"><span class="block text-[11px] font-bold uppercase tracking-wider text-secondary-500">Fecha</span><span class="text-brand-900 truncate block">' +
+        r.date +
+        "</span></div>";
+      html +=
+        '<div class="min-w-0"><span class="block text-[11px] font-bold uppercase tracking-wider text-secondary-500">Hora</span><span class="text-brand-900 truncate block">' +
+        r.time +
+        "</span></div>";
+      html +=
+        '<div class="min-w-0"><span class="block text-[11px] font-bold uppercase tracking-wider text-secondary-500">Comensales</span><span class="font-semibold text-brand-900">' +
+        r.partySize +
+        "</span></div>";
+      html +=
+        '<div class="col-span-2 min-w-0"><span class="block text-[11px] font-bold uppercase tracking-wider text-secondary-500">Mesa</span><span class="text-brand-900">' +
+        (r.tableNumber || "\u2014") +
+        "</span></div>";
+      html += "</div>";
+      html += '<div class="flex items-center justify-end gap-2 border-t border-brand-100 pt-3">';
+      html +=
+        '<button data-action="view-detail" data-id="' +
+        r.id +
+        '" class="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-transparent text-brand-500 hover:bg-brand-100 border border-brand-300 cursor-pointer transition-colors"><i data-lucide="eye" class="w-3.5 h-3.5"></i> Ver</button>';
+      if ((r.status === "pending" || r.status === "confirmed") && hasAnyRole("admin", "waiter")) {
+        html +=
+          '<button data-action="cancel" data-id="' +
+          r.id +
+          '" class="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer transition-colors"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>';
+      }
+      html += "</div>";
+      html += "</div>";
+    });
+  }
+  html += "</div>";
+  html += "</div>";
   html += "</div>";
   el.innerHTML = html;
   window.createIcons();
@@ -238,9 +303,9 @@ function renderDetail(el) {
   html += '<div class="flex items-center justify-between">';
   html += '<div class="flex items-center gap-3">';
   html +=
-    '<button data-action="back" class="flex items-center gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>';
+    '<button data-action="back" class="flex items-center gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="arrow-left" class="w-4 h-4"></i> Volver</button>';
   html +=
-    '<h2 class="text-xl font-semibold text-primary-700 font-display">Reservation ' +
+    '<h2 class="text-xl font-semibold text-primary-700 font-display">Reserva ' +
     r.code +
     "</h2>";
   html += "</div>";
@@ -251,31 +316,31 @@ function renderDetail(el) {
       html +=
         '<button data-action="confirm" data-id="' +
         r.id +
-        '" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-success-600 hover:bg-success-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="check" class="w-3.5 h-3.5"></i> Confirm</button>';
+        '" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-success-600 hover:bg-success-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="check" class="w-3.5 h-3.5"></i> Confirmar</button>';
     }
     if (r.status === "confirmed") {
       html +=
         '<button data-action="complete" data-id="' +
         r.id +
-        '" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Complete</button>';
+        '" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Completar</button>';
     }
     html +=
       '<button data-action="cancel" data-id="' +
       r.id +
-      '" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer transition-colors"><i data-lucide="x" class="w-3.5 h-3.5"></i> Cancel</button>';
+      '" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer transition-colors"><i data-lucide="x" class="w-3.5 h-3.5"></i> Cancelar</button>';
     html += "</div>";
   }
   if (hasAnyRole("admin")) {
     html +=
       '<button data-action="delete-reservation" data-id="' +
       r.id +
-      '" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-error-600 hover:bg-error-700 text-white border-0 cursor-pointer transition-colors ml-auto"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete</button>';
+      '" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-error-600 hover:bg-error-700 text-white border-0 cursor-pointer transition-colors ml-auto"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Eliminar</button>';
   }
   html += "</div></div>";
 
   html += '<div class="grid grid-cols-4 gap-4">';
   html += renderInfoCard(
-    "Guest",
+    "Huésped",
     '<span class="text-lg font-bold text-brand-900">' +
       r.guestName +
       "</span>" +
@@ -284,7 +349,7 @@ function renderDetail(el) {
         : "")
   );
   html += renderInfoCard(
-    "Date & Time",
+    "Fecha y hora",
     '<span class="text-lg font-bold text-brand-900">' +
       r.date +
       '</span><span class="block text-sm text-secondary-500 mt-0.5">' +
@@ -292,13 +357,13 @@ function renderDetail(el) {
       "</span>"
   );
   html += renderInfoCard(
-    "Party",
+    "Comensales",
     '<span class="text-lg font-bold text-brand-900">' +
       r.partySize +
-      '</span><span class="block text-sm text-secondary-500 mt-0.5">guests</span>'
+      '</span><span class="block text-sm text-secondary-500 mt-0.5">personas</span>'
   );
   html += renderInfoCard(
-    "Table",
+    "Mesa",
     '<span class="text-lg font-bold text-brand-900">' + (r.tableNumber || "\u2014") + "</span>"
   );
   html += "</div>";
@@ -307,22 +372,22 @@ function renderDetail(el) {
     '<div class="bg-white border border-brand-300 rounded-xl shadow-[0_2px_6px_rgba(114,49,23,0.08)] overflow-hidden">';
   html +=
     '<div class="flex items-center justify-between px-5 py-4 border-b border-brand-100 bg-brand-50">';
-  html += '<h3 class="text-sm font-bold text-brand-800">Details</h3>';
+  html += '<h3 class="text-sm font-bold text-brand-800">Detalles</h3>';
   html += "</div>";
   html += '<div class="px-5 py-4 space-y-3">';
   html +=
-    '<div class="flex items-center gap-3 text-sm"><span class="font-semibold text-secondary-500 w-28">Created</span><span class="text-neutral-700">' +
-    new Date(r.createdAt).toLocaleDateString() +
-    " at " +
-    new Date(r.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) +
+    '<div class="flex items-center gap-3 text-sm"><span class="font-semibold text-secondary-500 w-28">Creada</span><span class="text-neutral-700">' +
+    new Date(r.createdAt).toLocaleDateString("es-ES") +
+    " a las " +
+    new Date(r.createdAt).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }) +
     "</span></div>";
   html +=
-    '<div class="flex items-center gap-3 text-sm"><span class="font-semibold text-secondary-500 w-28">Status</span>' +
+    '<div class="flex items-center gap-3 text-sm"><span class="font-semibold text-secondary-500 w-28">Estado</span>' +
     statusBadge(r.status) +
     "</div>";
   if (r.notes) {
     html +=
-      '<div class="flex items-start gap-3 text-sm"><span class="font-semibold text-secondary-500 w-28 shrink-0">Notes</span><span class="text-neutral-700 italic">' +
+      '<div class="flex items-start gap-3 text-sm"><span class="font-semibold text-secondary-500 w-28 shrink-0">Notas</span><span class="text-neutral-700 italic">' +
       r.notes +
       "</span></div>";
   }
@@ -364,9 +429,9 @@ function renderConfirmTablePanel(el) {
   html += '<div class="flex items-center justify-between">';
   html += '<div class="flex items-center gap-3">';
   html +=
-    '<button data-action="back-to-detail" class="flex items-center gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>';
+    '<button data-action="back-to-detail" class="flex items-center gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="arrow-left" class="w-4 h-4"></i> Volver</button>';
   html +=
-    '<h2 class="text-xl font-semibold text-primary-700 font-display">Select Table for ' +
+    '<h2 class="text-xl font-semibold text-primary-700 font-display">Seleccionar mesa para ' +
     r.code +
     "</h2>";
   html += "</div>";
@@ -376,15 +441,15 @@ function renderConfirmTablePanel(el) {
     '<div class="bg-white border border-brand-300 rounded-xl shadow-[0_2px_6px_rgba(114,49,23,0.08)] overflow-hidden">';
   html += '<div class="px-5 py-4 border-b border-brand-100 bg-brand-50">';
   html +=
-    '<h3 class="text-sm font-bold text-brand-800">Available Tables <span class="font-normal text-secondary-500">(capacity ≥ ' +
+    '<h3 class="text-sm font-bold text-brand-800">Mesas disponibles <span class="font-normal text-secondary-500">(capacidad ≥ ' +
     r.partySize +
-    " guests)</span></h3>";
+    " personas)</span></h3>";
   html += "</div>";
 
   if (availableTables.length === 0) {
     html += '<div class="px-5 py-8 text-center">';
     html += '<i data-lucide="table" class="w-10 h-10 text-secondary-300 mx-auto mb-2"></i>';
-    html += '<p class="text-sm text-secondary-400">No tables available with enough capacity</p>';
+    html += '<p class="text-sm text-secondary-400">No hay mesas disponibles con capacidad suficiente</p>';
     html += "</div>";
   } else {
     html += '<div class="grid grid-cols-2 gap-3 p-5">';
@@ -408,10 +473,10 @@ function renderConfirmTablePanel(el) {
       html +=
         '<div class="text-sm font-semibold ' +
         (isSelected ? "text-primary-700" : "text-neutral-800") +
-        '">Table ' +
+        '">Mesa ' +
         t.number +
         "</div>";
-      html += '<div class="text-xs text-secondary-500">' + t.seats + " seats";
+      html += '<div class="text-xs text-secondary-500">' + t.seats + " asientos";
       if (t.area) html += " · " + t.area;
       html += "</div>";
       html += "</div>";
@@ -427,7 +492,7 @@ function renderConfirmTablePanel(el) {
 
   html += '<div class="flex justify-end gap-3">';
   html +=
-    '<button data-action="back-to-detail" class="px-4 py-2 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer transition-colors">Cancel</button>';
+    '<button data-action="back-to-detail" class="px-4 py-2 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer transition-colors">Cancelar</button>';
   html +=
     '<button data-action="confirm-with-table" data-id="' +
     r.id +
@@ -437,7 +502,7 @@ function renderConfirmTablePanel(el) {
       : "bg-secondary-200 text-secondary-400 cursor-not-allowed") +
     '"' +
     (!selectedTableId ? " disabled" : "") +
-    '><i data-lucide="check" class="w-4 h-4"></i> Confirm Reservation</button>';
+    '><i data-lucide="check" class="w-4 h-4"></i> Confirmar reserva</button>';
   html += "</div>";
 
   html += "</div>";
@@ -487,7 +552,7 @@ function setupEvents(el) {
     const newRes = target.closest('[data-action="new-reservation"]');
     if (newRes) {
       e.stopPropagation();
-      const data = await reservationModal.show({ title: "New Reservation" });
+      const data = await reservationModal.show({ title: "Nueva reserva" });
       if (data) {
         await reservationService.createReservation({
           guestName: data.guestName,
@@ -559,8 +624,8 @@ function setupEvents(el) {
       const deleteId = deleteBtn.getAttribute("data-id");
       if (
         await confirmModal.show({
-          title: "Delete Reservation",
-          message: "Delete this reservation permanently?",
+          title: "Eliminar reserva",
+          message: "¿Eliminar esta reserva de forma permanente?",
         })
       ) {
         const result = await reservationService.deleteReservation(deleteId);
@@ -570,7 +635,7 @@ function setupEvents(el) {
           selectedId = null;
           renderList(el);
         } else {
-          toast.error("Error", result.error || "Error deleting reservation");
+          toast.error("Error", result.error || "Error al eliminar la reserva");
         }
       }
       return;

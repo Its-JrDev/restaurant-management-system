@@ -59,7 +59,7 @@ export async function getDailySales(startDate, endDate) {
   for (let i = new Date(start); i <= end; i.setDate(i.getDate() + 1)) {
     const dateStr = i.toISOString().split("T")[0];
     dailyMap[dateStr] = {
-      label: new Date(i).toLocaleDateString("en-US", { weekday: "short" }),
+      label: new Date(i).toLocaleDateString("es-ES", { weekday: "short" }),
       date: dateStr,
       revenue: 0,
       orders: 0,

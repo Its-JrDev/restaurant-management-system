@@ -62,7 +62,7 @@ export async function login(identifier, password, keepSignedIn = true) {
     });
     return { success: true, user: loggedUser };
   } else {
-    const err = "Invalid username or password";
+    const err = "Usuario o contraseña inválidos";
     authStore.setState({ error: err });
     return { success: false, error: err };
   }
@@ -111,7 +111,7 @@ export function setRole(newRole) {
 export async function addUser(userData) {
   const u = authStore.getState().user;
   if (!u || u.role !== "admin") {
-    return { success: false, error: "Only admins can create users" };
+    return { success: false, error: "Solo los administradores pueden crear usuarios" };
   }
   
   const newUser = {

@@ -1,8 +1,8 @@
 const ROLES = [
-  { id: "admin", label: "Admin", color: "#dc2626" },
-  { id: "waiter", label: "Waiter", color: "#7329e1" },
-  { id: "chef", label: "Chef", color: "#c77c2c" },
-  { id: "cashier", label: "Cashier", color: "#16a34a" },
+  { id: "admin", label: "Administrador", color: "#dc2626" },
+  { id: "waiter", label: "Mesero", color: "#7329e1" },
+  { id: "chef", label: "Cocinero", color: "#c77c2c" },
+  { id: "cashier", label: "Cajero", color: "#16a34a" },
 ];
 
 let expanded = false;
@@ -43,7 +43,7 @@ function renderFloatingButton() {
     let html =
       '<div class="absolute right-0 bottom-full mb-3 bg-brand-100 border border-brand-300 rounded-xl p-2 shadow-2xl min-w-[180px] z-[100000] dark:bg-brand-200 dark:border-brand-400">';
     html +=
-      '<div class="px-2 py-1 text-[10px] font-bold text-brand-600 dark:text-brand-700 uppercase tracking-wider">Demo Role Switcher</div>';
+      '<div class="px-2 py-1 text-[10px] font-bold text-brand-600 dark:text-brand-700 uppercase tracking-wider">Selector de rol (demo)</div>';
     ROLES.forEach(function (r) {
       const isActive = r.id === role;
       const bgClass = isActive ? "bg-brand-500 text-white" : "text-brand-900 hover:bg-brand-200 dark:text-brand-900 dark:hover:bg-brand-300";
@@ -112,12 +112,12 @@ function switchRole(newRole) {
   window.currentRole = newRole;
 
   const roleLabels = {
-    admin: "Administrator",
-    waiter: "Waiter",
-    chef: "Chef",
-    cashier: "Cashier",
+    admin: "Administrador",
+    waiter: "Mesero",
+    chef: "Cocinero",
+    cashier: "Cajero",
   };
-  const username = user.displayName || user.username || "Admin";
+  const username = user.displayName || user.username || "Administrador";
   const initials = username
     .split(" ")
     .map(function (w) {

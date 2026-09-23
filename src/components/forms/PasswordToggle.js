@@ -7,7 +7,7 @@ function PasswordToggle(opts) {
     "bg-transparent border-none cursor-pointer text-neutral-400 " +
     'hover:text-neutral-600" data-input="' +
     inputId +
-    '" aria-label="Toggle password visibility">';
+    '" aria-label="Mostrar u ocultar contraseña">';
   html += '<i data-lucide="eye" class="icon-eye w-5 h-5"></i>';
   html += '<i data-lucide="eye-off" class="icon-eye-off w-5 h-5 hidden"></i>';
   html += "</button>";

@@ -1,4 +1,25 @@
 import { getCollection, insertItem, updateItem as dbUpdateItem, deleteItem as dbDeleteItem } from "../store/data/db.js";
+import { notify } from "../store/notifications.js";
+
+function notifyLowStock(item) {
+  if (parseFloat(item.quantity) > parseFloat(item.min_stock)) return;
+  notify({
+    type: "warning",
+    title: "Stock bajo",
+    message:
+      'El ingrediente "' +
+      item.name +
+      '" está por debajo del mínimo (' +
+      item.quantity +
+      " " +
+      (item.unit || "") +
+      ").",
+    roles: ["admin", "chef"],
+    refType: "low_stock",
+    refId: item.id,
+    dedupe: true,
+  });
+}
 
 function mapItem(item) {
   return {
@@ -62,15 +83,16 @@ export async function updateItem(id, data) {
     updated_at: new Date().toISOString(),
   });
   if (updated) {
+    notifyLowStock(updated);
     return { success: true, item: mapItem(updated) };
   }
-  return { success: false, error: "Item not found" };
+  return { success: false, error: "Artículo no encontrado" };
 }
 
 export async function registerMovement(itemId, data) {
   const items = getCollection("inventory_items");
   const item = items.find((i) => i.id === itemId);
-  if (!item) return { success: false, error: "Item not found" };
+  if (!item) return { success: false, error: "Artículo no encontrado" };
 
   const newQuantity =
     data.type === "in" ? item.quantity + data.quantity : item.quantity - data.quantity;
@@ -88,6 +110,8 @@ export async function registerMovement(itemId, data) {
     created_at: new Date().toISOString(),
   };
   insertItem("inventory_movements", movement);
+
+  if (updated) notifyLowStock(updated);
 
   return { success: true, movement: mapMovement(movement), item: mapItem(updated) };
 }

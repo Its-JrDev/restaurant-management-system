@@ -65,7 +65,7 @@ function renderColumn(col, isActive) {
   html += '<div class="flex-1 overflow-y-auto px-3 pb-3 flex flex-col gap-3">';
 
   if (orders.length === 0) {
-    html += '<div class="text-center py-6 text-secondary-400 text-[13px]">No orders</div>';
+    html += '<div class="text-center py-6 text-secondary-400 text-[13px]">Sin órdenes</div>';
   } else {
     orders.forEach(function (order) {
       html += renderCard(order, col);
@@ -78,7 +78,11 @@ function renderColumn(col, isActive) {
 
 function renderCard(order, col) {
   const actionLabel =
-    col.key === "new" ? "Start Preparing" : col.key === "preparing" ? "Mark Ready" : "Served";
+    col.key === "new"
+      ? "Iniciar preparación"
+      : col.key === "preparing"
+        ? "Marcar como listo"
+        : "Servido";
   const actionBg =
     col.key === "new"
       ? "bg-brand-600 hover:bg-brand-700"
@@ -91,7 +95,7 @@ function renderCard(order, col) {
     '<div class="bg-white border border-brand-300 rounded-lg p-4 shadow-[0_2px_6px_rgba(114,49,23,0.08)]">';
 
   html += '<div class="flex items-center justify-between mb-3">';
-  html += '<span class="text-sm font-bold text-brand-800">Table ' + order.table + "</span>";
+  html += '<span class="text-sm font-bold text-brand-800">Mesa ' + order.table + "</span>";
   html +=
     '<span class="inline-flex items-center gap-1 text-xs ' +
     (isUrgent ? "text-error-600 font-semibold" : "text-secondary-500") +
@@ -119,7 +123,7 @@ function renderCard(order, col) {
   html +=
     '<button data-kitchen-action="details" data-order-id="' +
     order.id +
-    '" class="flex-1 h-8 px-3 text-xs font-semibold rounded-lg bg-transparent text-primary-600 hover:bg-primary-50 border border-primary-300 cursor-pointer transition-colors">Details</button>';
+    '" class="flex-1 h-8 px-3 text-xs font-semibold rounded-lg bg-transparent text-primary-600 hover:bg-primary-50 border border-primary-300 cursor-pointer transition-colors">Detalles</button>';
   const allowed = col.key === "ready" ? hasAnyRole("admin", "waiter") : hasAnyRole("admin", "chef");
   if (allowed) {
     html +=
@@ -150,10 +154,10 @@ function showDetailsModal(order) {
 
   const isUrgent = order.time > 15;
   const statusLabels = {
-    new: "New Order",
-    preparing: "In Preparation",
-    ready: "Ready to Serve",
-    served: "Served",
+    new: "Orden nueva",
+    preparing: "En preparación",
+    ready: "Lista para servir",
+    served: "Servida",
   };
   const statusColors = {
     new: "bg-info-100 text-info-700",
@@ -177,9 +181,9 @@ function showDetailsModal(order) {
   });
 
   const nextAction = order.status === "new"
-    ? { next: "preparing", label: "Start Preparing", cls: "bg-brand-600 hover:bg-brand-700 text-white" }
+    ? { next: "preparing", label: "Iniciar preparación", cls: "bg-brand-600 hover:bg-brand-700 text-white" }
     : order.status === "preparing"
-      ? { next: "ready", label: "Mark Ready", cls: "bg-primary-600 hover:bg-primary-700 text-white" }
+      ? { next: "ready", label: "Marcar como listo", cls: "bg-primary-600 hover:bg-primary-700 text-white" }
       : null;
 
   modalEl.innerHTML =
@@ -187,10 +191,10 @@ function showDetailsModal(order) {
       '<div class="flex items-center justify-between px-6 py-4 border-b border-brand-100 bg-brand-50">' +
         '<div>' +
           '<div class="flex items-center gap-2">' +
-            '<h3 class="text-lg font-bold text-brand-900 font-display">Order #' + order.id + '</h3>' +
+            '<h3 class="text-lg font-bold text-brand-900 font-display">Orden #' + order.id + '</h3>' +
             '<span class="text-xs font-bold px-2.5 py-0.5 rounded-full ' + (statusColors[order.status] || "bg-brand-100 text-brand-700") + '">' + (statusLabels[order.status] || order.status) + '</span>' +
           '</div>' +
-          '<p class="text-xs text-secondary-500 mt-0.5">Table ' + order.table + ' • ' + (matchedOrder && matchedOrder.server ? 'Server: ' + matchedOrder.server : 'Kitchen Ticket') + '</p>' +
+          '<p class="text-xs text-secondary-500 mt-0.5">Mesa ' + order.table + ' • ' + (matchedOrder && matchedOrder.server ? 'Mesero: ' + matchedOrder.server : 'Ticket de cocina') + '</p>' +
         '</div>' +
         '<button id="closeKitchenModal" class="w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-600 hover:bg-brand-100 transition-colors cursor-pointer border-none bg-transparent">' +
           '<i data-lucide="x" class="w-5 h-5"></i>' +
@@ -199,26 +203,26 @@ function showDetailsModal(order) {
       '<div class="p-6 overflow-y-auto space-y-4">' +
         '<div class="grid grid-cols-2 gap-3">' +
           '<div class="p-3 bg-brand-50/70 rounded-xl border border-brand-200">' +
-            '<span class="text-[11px] font-bold text-secondary-500 uppercase tracking-wider block">Elapsed Time</span>' +
+            '<span class="text-[11px] font-bold text-secondary-500 uppercase tracking-wider block">Tiempo transcurrido</span>' +
             '<span class="text-sm font-bold ' + (isUrgent ? 'text-error-600' : 'text-brand-800') + ' flex items-center gap-1 mt-0.5">' +
-              '<i data-lucide="clock" class="w-4 h-4"></i> ' + order.time + ' min ' + (isUrgent ? '(Urgent)' : '') +
+              '<i data-lucide="clock" class="w-4 h-4"></i> ' + order.time + ' min ' + (isUrgent ? '(Urgente)' : '') +
             '</span>' +
           '</div>' +
           '<div class="p-3 bg-brand-50/70 rounded-xl border border-brand-200">' +
-            '<span class="text-[11px] font-bold text-secondary-500 uppercase tracking-wider block">Items Count</span>' +
+            '<span class="text-[11px] font-bold text-secondary-500 uppercase tracking-wider block">Cantidad de artículos</span>' +
             '<span class="text-sm font-bold text-brand-800 flex items-center gap-1 mt-0.5">' +
-              '<i data-lucide="utensils" class="w-4 h-4"></i> ' + order.items.length + ' item(s)' +
+              '<i data-lucide="utensils" class="w-4 h-4"></i> ' + order.items.length + ' artículo(s)' +
             '</span>' +
           '</div>' +
         '</div>' +
         (order.note ? (
           '<div class="p-3 bg-accent-50 border-l-4 border-accent-500 rounded-r-xl text-accent-900">' +
-            '<span class="text-xs font-bold uppercase tracking-wider block text-accent-700 mb-0.5">Kitchen Note</span>' +
+            '<span class="text-xs font-bold uppercase tracking-wider block text-accent-700 mb-0.5">Nota de cocina</span>' +
             '<p class="text-sm font-medium italic">' + order.note + '</p>' +
           '</div>'
         ) : '') +
         '<div class="border border-brand-200 rounded-xl p-4 bg-white">' +
-          '<h4 class="text-xs font-bold uppercase tracking-wider text-brand-700 mb-3">Order Items</h4>' +
+          '<h4 class="text-xs font-bold uppercase tracking-wider text-brand-700 mb-3">Artículos de la orden</h4>' +
           '<div class="divide-y divide-brand-100">' + itemsHtml + '</div>' +
         '</div>' +
       '</div>' +
@@ -227,7 +231,7 @@ function showDetailsModal(order) {
           '<i data-lucide="external-link" class="w-3.5 h-3.5"></i> Ver orden completa en POS' +
         '</button>' +
         '<div class="flex items-center gap-2">' +
-          '<button id="closeKitchenModalBtn" class="px-4 py-2 text-xs font-semibold rounded-lg bg-white border border-brand-300 text-neutral-700 hover:bg-brand-50 cursor-pointer transition-colors">Close</button>' +
+          '<button id="closeKitchenModalBtn" class="px-4 py-2 text-xs font-semibold rounded-lg bg-white border border-brand-300 text-neutral-700 hover:bg-brand-50 cursor-pointer transition-colors">Cerrar</button>' +
           (nextAction ? (
             '<button id="modalActionMoveBtn" class="px-4 py-2 text-xs font-semibold rounded-lg border-0 cursor-pointer transition-colors ' + nextAction.cls + '">' +
               nextAction.label +
@@ -275,7 +279,7 @@ const KitchenView = {
     const cols = [
       {
         key: "new",
-        label: "New Orders",
+        label: "Órdenes nuevas",
         next: "preparing",
         colBg: "bg-info-50",
         headerColor: "text-info-700",
@@ -284,7 +288,7 @@ const KitchenView = {
       },
       {
         key: "preparing",
-        label: "Preparing",
+        label: "Preparando",
         next: "ready",
         colBg: "bg-accent-50",
         headerColor: "text-accent-700",
@@ -293,7 +297,7 @@ const KitchenView = {
       },
       {
         key: "ready",
-        label: "Ready to Serve",
+        label: "Listas para servir",
         next: "served",
         colBg: "bg-success-50",
         headerColor: "text-success-700",
@@ -305,9 +309,9 @@ const KitchenView = {
     let html = '<div class="flex flex-col h-full">';
 
     html += '<div class="flex items-center justify-between mb-5">';
-    html += '<h2 class="text-xl font-bold text-brand-900">Kitchen Orders</h2>';
+    html += '<h2 class="text-xl font-bold text-brand-900">Órdenes de cocina</h2>';
     html += '<div class="flex items-center gap-2 text-sm text-brand-600">';
-    html += '<span class="w-3 h-3 rounded-full bg-error-500"></span> Urgent (&gt;15 min)';
+    html += '<span class="w-3 h-3 rounded-full bg-error-500"></span> Urgente (&gt;15 min)';
     html += "</div></div>";
 
     html += '<div class="flex lg:hidden bg-brand-100 rounded-lg p-1 mb-4">';

@@ -1,5 +1,14 @@
 const LIFECYCLE = ["draft", "new", "preparing", "ready", "served", "completed"];
 
+const STEP_LABELS = {
+  draft: "Borrador",
+  new: "Nuevo",
+  preparing: "Preparando",
+  ready: "Listo",
+  served: "Servido",
+  completed: "Completado",
+};
+
 function StatusStepper(opts) {
   opts = opts || {};
   const current = opts.status || "new";
@@ -13,7 +22,7 @@ function StatusStepper(opts) {
     html += '<div class="w-full text-center py-3">';
     html +=
       '<span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-error-100 text-error-700 font-semibold text-sm">';
-    html += '<i data-lucide="x-circle" class="w-4 h-4"></i> Cancelled';
+    html += '<i data-lucide="x-circle" class="w-4 h-4"></i> Cancelado';
     html += "</span>";
     html += "</div>";
     html += "</div>";
@@ -47,7 +56,7 @@ function StatusStepper(opts) {
       '<span class="text-[10px] font-semibold mt-1 text-center capitalize whitespace-nowrap ' +
       (isCurrent ? "text-primary-700" : "text-brand-500") +
       '">' +
-      step +
+      (STEP_LABELS[step] || step) +
       "</span>";
     html += "</div>";
 

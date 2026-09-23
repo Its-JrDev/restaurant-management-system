@@ -1,7 +1,7 @@
 import Spinner from "../ui/Spinner.js";
 
 function SubmitButton(opts) {
-  const text = opts.text || "Submit";
+  const text = opts.text || "Enviar";
   const id = opts.id || "submitBtn";
   const disabled = opts.disabled || false;
 
@@ -27,7 +27,7 @@ function initSubmitButton(id, options = {}) {
   if (!btn) return;
 
   const originalText = btn.textContent.trim();
-  const loadingText = options.loadingText || "Loading...";
+  const loadingText = options.loadingText || "Cargando...";
 
   btn._setLoading = (loading) => {
     if (loading) {

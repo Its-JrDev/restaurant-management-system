@@ -1,5 +1,6 @@
 import { getCollection, insertItem, updateItem as dbUpdateItem, deleteItem as dbDeleteItem } from "./data/db.js";
 import { currentUser } from "./auth.js";
+import { notify } from "./notifications.js";
 
 export let menuItems = [];
 export let allOrders = [];
@@ -11,9 +12,9 @@ let _usersLoaded = false;
 let _menuLoaded = false;
 
 export const areas = [
-  { id: 1, name: "Main Hall", icon: "home" },
-  { id: 2, name: "Terrace", icon: "sun" },
-  { id: 3, name: "Seaside Pier", icon: "waves" },
+  { id: 1, name: "Salón Principal", icon: "home" },
+  { id: 2, name: "Terraza", icon: "sun" },
+  { id: 3, name: "Muelle frente al mar", icon: "waves" },
 ];
 
 export let tables = [];
@@ -65,7 +66,7 @@ export async function loadMenuItems() {
         name: product.name,
         price: product.price,
         available: product.available !== false && product.is_available !== false,
-        cat: category ? category.name : "Other",
+        cat: category ? category.name : "Otros",
         emoji: product.image_url || null,
       };
     })
@@ -111,7 +112,7 @@ export async function loadOrders() {
         createdBy: serverName,
         reservationId: o.reservation_id || null,
         placedAt: o.created_at
-          ? new Date(o.created_at).toLocaleTimeString("en-US", {
+          ? new Date(o.created_at).toLocaleTimeString("es-ES", {
               hour: "numeric",
               minute: "2-digit",
             })
@@ -198,7 +199,7 @@ export async function loadTables() {
         area: t.location_id || null,
         areaName: loc ? loc.name : "",
         status: t.status || "available",
-        info: t.status === "available" ? "Free" : t.status === "reserved" ? "Reserved" : "Occupied",
+        info: t.status === "available" ? "Libre" : t.status === "reserved" ? "Reservada" : "Ocupada",
         timer: null,
       };
     });
@@ -325,10 +326,16 @@ export async function addOrderItem(orderId, menuItemId, quantity, notes) {
       subtotal: (mi ? mi.price : 0) * (quantity || 1),
       notes: notes || null
     };
-    insertItem("order_items", orderItem);
-    
-    // Update order total
-    const order = getCollection("orders").find(o => o.id === orderId);
+insertItem("order_items", orderItem);
+// Decrement inventory quantity when an item is ordered
+const inventoryItem = getCollection("inventory_items").find(function (i) {
+  return i.name.toLowerCase() === mi.name.toLowerCase();
+});
+if (inventoryItem) {
+  const newQty = Math.max(0, parseFloat(inventoryItem.quantity) - quantity);
+  dbUpdateItem("inventory_items", inventoryItem.id, { quantity: newQty });
+}
+const order = getCollection("orders").find(o => o.id === orderId);
     if (order) {
       dbUpdateItem("orders", orderId, { total: order.total + orderItem.subtotal });
     }
@@ -344,6 +351,22 @@ export async function addOrderItem(orderId, menuItemId, quantity, notes) {
         notes: notes || null,
         created_at: new Date().toISOString()
       });
+
+      const orderRef = getCollection("orders").find(o => o.id === orderId);
+      let tableLabel = "";
+      if (orderRef && orderRef.table_id) {
+        const tbl = getCollection("tables").find(t => String(t.id) === String(orderRef.table_id));
+        if (tbl) tableLabel = " · Mesa " + tbl.number;
+      }
+      notify({
+        type: "info",
+        title: "Nuevo plato en cocina",
+        message: mi.name + " x" + (quantity || 1) + tableLabel,
+        roles: ["admin", "chef"],
+        refType: "order_item_sent",
+        refId: orderItem.id,
+        dedupe: true,
+      });
     }
 
     await loadOrders();
@@ -356,7 +379,7 @@ export async function addOrderItem(orderId, menuItemId, quantity, notes) {
 
 export async function updateOrderStatus(orderId, frontendStatus) {
   const backendStatus = STATUS_MAP_TO_BACKEND[frontendStatus];
-  if (!backendStatus) return { success: false, error: "Cannot persist status: " + frontendStatus };
+  if (!backendStatus) return { success: false, error: "No se pudo guardar el estado: " + frontendStatus };
   try {
     const result = dbUpdateItem("orders", orderId, { status: backendStatus });
     if (backendStatus === "completed" || backendStatus === "cancelled") {
@@ -368,6 +391,27 @@ export async function updateOrderStatus(orderId, frontendStatus) {
           dbUpdateItem("tables", table.id, { status: "available" });
         }
       }
+    }
+    if (result && backendStatus === "completed") {
+      notify({
+        type: "success",
+        title: "Orden completada",
+        message: "La orden fue completada.",
+        roles: ["admin"],
+        refType: "order_completed",
+        refId: orderId,
+        dedupe: true,
+      });
+    } else if (result && backendStatus === "cancelled") {
+      notify({
+        type: "warning",
+        title: "Orden cancelada",
+        message: "Una orden fue cancelada.",
+        roles: ["admin"],
+        refType: "order_cancelled",
+        refId: orderId,
+        dedupe: true,
+      });
     }
     await loadOrders();
     await loadTables();
@@ -421,6 +465,22 @@ export async function updateKitchenOrderStatus(kitchenOrderId, newStatus) {
       const derived = deriveParentStatus(siblings);
       const parent = getCollection("orders").find((o) => o.id === result.order_id);
       if (derived && parent && parent.status !== "completed" && parent.status !== "cancelled") {
+        if (derived === "ready" && parent.status !== "ready") {
+          let tableLabel = "";
+          if (parent.table_id) {
+            const tbl = getCollection("tables").find((t) => String(t.id) === String(parent.table_id));
+            if (tbl) tableLabel = " · Mesa " + tbl.number;
+          }
+          notify({
+            type: "success",
+            title: "Platos listos para servir",
+            message: "La orden está lista para servir" + tableLabel,
+            roles: ["admin", "waiter"],
+            refType: "order_ready",
+            refId: result.order_id,
+            dedupe: true,
+          });
+        }
         dbUpdateItem("orders", parent.id, { status: derived });
       }
     }
@@ -439,17 +499,17 @@ export async function updateAllKitchenOrderStatuses(kitchenIds, newStatus, _expe
   for (const kid of kitchenIds) {
     lastResult = await updateKitchenOrderStatus(kid, newStatus);
   }
-  return lastResult || { success: false, error: "No kitchen order IDs provided" };
+  return lastResult || { success: false, error: "No se proporcionaron IDs de órdenes de cocina" };
 }
 
 function formatTimeAgo(dateStr) {
   if (!dateStr) return "";
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return mins + " min ago";
+  if (mins < 1) return "ahora mismo";
+  if (mins < 60) return "hace " + mins + " min";
   const hours = Math.floor(mins / 60);
-  return hours + "h ago";
+  return "hace " + hours + " h";
 }
 
 export function setKitchenOrders(arr) {
@@ -496,11 +556,11 @@ export function saveDraft(cartItems, tableId) {
     }),
     total: 0,
     status: "draft",
-    time: "Just now",
+    time: "Ahora mismo",
     note: null,
-    server: user ? user.name || user.username : "Admin",
+    server: user ? user.name || user.username : "Administrador",
     createdBy: user ? user.role : "admin",
-    placedAt: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+    placedAt: new Date().toLocaleTimeString("es-ES", { hour: "numeric", minute: "2-digit" }),
   };
   recalcOrder(draft);
   draftOrders.unshift(draft);

@@ -1,4 +1,5 @@
 import { getCollection, insertItem, updateItem as dbUpdateItem, deleteItem as dbDeleteItem } from "../store/data/db.js";
+import { notify } from "../store/notifications.js";
 
 export function mapReservation(r) {
   const dt = r.reservation_date ? new Date(r.reservation_date) : null;
@@ -104,6 +105,24 @@ export async function createReservation(data) {
     created_at: new Date().toISOString(),
   };
   insertItem("reservations", newReservation);
+  const dt = new Date(reservationDateTime);
+  notify({
+    type: "info",
+    title: "Nueva reservación",
+    message:
+      (newReservation.guest_name || "Huésped") +
+      " · " +
+      dt.toLocaleDateString("es-ES") +
+      " " +
+      dt.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }) +
+      " · " +
+      (newReservation.guest_count || 1) +
+      " personas",
+    roles: ["admin", "waiter"],
+    refType: "reservation_created",
+    refId: newReservation.id,
+    dedupe: true,
+  });
   return { success: true, reservation: mapReservation(newReservation) };
 }
 
@@ -113,9 +132,10 @@ export async function updateReservationStatus(id, newStatus) {
     updated_at: new Date().toISOString(),
   });
   if (updated) {
+    notifyReservationStatus(id, newStatus, updated);
     return { success: true, reservation: mapReservation(updated) };
   }
-  return { success: false, error: "Reservation not found" };
+  return { success: false, error: "Reserva no encontrada" };
 }
 
 export async function deleteReservation(id) {
@@ -130,10 +150,49 @@ export async function confirmReservation(id, tableId) {
   };
   if (tableId) {
     updates.table_id = tableId;
+    const tables = getCollection("tables");
+    const table = tables.find(function (t) {
+      return String(t.id) === String(tableId);
+    });
+    if (table) {
+      const currentStatus = table.status || "available";
+      const newStatus = currentStatus === "available" ? "reserved" : currentStatus;
+      dbUpdateItem("tables", table.id, { status: newStatus });
+    }
   }
   const updated = dbUpdateItem("reservations", id, updates);
   if (updated) {
+    notifyReservationStatus(id, "confirmed", updated);
     return { success: true, reservation: mapReservation(updated) };
   }
-  return { success: false, error: "Reservation not found" };
+  return { success: false, error: "Reserva no encontrada" };
+}
+
+function notifyReservationStatus(id, newStatus, reservation) {
+  const labels = {
+    confirmed: { type: "success", title: "Reservación confirmada" },
+    cancelled: { type: "warning", title: "Reservación cancelada" },
+  };
+  const entry = labels[newStatus];
+  if (!entry) return;
+  const guest = reservation.guest_name || (reservation.guestName || "Huésped");
+  const dt = reservation.reservation_date
+    ? new Date(reservation.reservation_date)
+    : null;
+  notify({
+    type: entry.type,
+    title: entry.title,
+    message:
+      guest +
+      (dt
+        ? " · " +
+          dt.toLocaleDateString("es-ES") +
+          " " +
+          dt.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })
+        : ""),
+    roles: ["admin", "waiter"],
+    refType: "reservation_" + newStatus,
+    refId: id,
+    dedupe: true,
+  });
 }

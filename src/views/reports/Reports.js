@@ -54,7 +54,7 @@ function renderBarChart(data) {
       }),
       datasets: [
         {
-          label: "Revenue",
+          label: "Ingresos",
           data: data.map(function (d) {
             return d.revenue;
           }),
@@ -63,7 +63,7 @@ function renderBarChart(data) {
           barPercentage: 0.6,
         },
         {
-          label: "Orders",
+          label: "Órdenes",
           data: data.map(function (d) {
             return d.orders * 50;
           }),
@@ -90,11 +90,11 @@ function renderBarChart(data) {
             label: function (ctx) {
               if (ctx.datasetIndex === 0) {
                 return (
-                  "Revenue: $" +
+                  "Ingresos: $" +
                   ctx.parsed.y.toLocaleString(undefined, { minimumFractionDigits: 2 })
                 );
               }
-              return "Orders: " + Math.round(ctx.parsed.y / 50);
+              return "Órdenes: " + Math.round(ctx.parsed.y / 50);
             },
           },
         },
@@ -157,11 +157,11 @@ function setupEvents(el) {
         },
       ];
       exportToCSV(salesData, "sales-report-" + startDate + "-" + endDate, [
-        { key: "Start Date", label: "Start Date" },
-        { key: "End Date", label: "End Date" },
-        { key: "Total Revenue", label: "Total Revenue" },
-        { key: "Total Orders", label: "Total Orders" },
-        { key: "Avg Order Value", label: "Avg Order Value" },
+        { key: "Start Date", label: "Fecha de inicio" },
+        { key: "End Date", label: "Fecha de fin" },
+        { key: "Total Revenue", label: "Ingresos totales" },
+        { key: "Total Orders", label: "Órdenes totales" },
+        { key: "Avg Order Value", label: "Valor promedio por orden" },
       ]);
     }
 
@@ -192,11 +192,11 @@ function setupEvents(el) {
         };
       });
       exportToCSV(productsData, "top-products-" + startDate + "-" + endDate, [
-        { key: "Rank", label: "Rank" },
-        { key: "Product", label: "Product" },
-        { key: "Quantity", label: "Quantity Sold" },
-        { key: "Revenue", label: "Revenue" },
-        { key: "Percent of Total", label: "% of Total" },
+        { key: "Rank", label: "Posición" },
+        { key: "Product", label: "Producto" },
+        { key: "Quantity", label: "Cantidad vendida" },
+        { key: "Revenue", label: "Ingresos" },
+        { key: "Percent of Total", label: "% del total" },
       ]);
     }
   });
@@ -233,49 +233,49 @@ async function render(el) {
   let html = '<div class="space-y-5">';
 
   html += '<div class="flex items-center justify-between">';
-  html += '<div><h2 class="text-xl font-semibold text-brand-900 font-display">Reports</h2>';
-  html += '<p class="text-sm text-secondary-500 mt-0.5">Sales analytics and performance</p></div>';
+  html += '<div><h2 class="text-xl font-semibold text-brand-900 font-display">Reportes</h2>';
+  html += '<p class="text-sm text-secondary-500 mt-0.5">Analítica de ventas y rendimiento</p></div>';
   html += '<div class="flex gap-2">';
   html +=
-    '<button data-action="export-sales-csv" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border bg-white text-brand-700 border-brand-300 cursor-pointer hover:bg-brand-50 transition-colors"><i data-lucide="download" class="w-4 h-4"></i> Export Sales CSV</button>';
+    '<button data-action="export-sales-csv" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border bg-white text-brand-700 border-brand-300 cursor-pointer hover:bg-brand-50 transition-colors"><i data-lucide="download" class="w-4 h-4"></i> Exportar CSV de ventas</button>';
   html +=
-    '<button data-action="export-products-csv" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border bg-white text-brand-700 border-brand-300 cursor-pointer hover:bg-brand-50 transition-colors"><i data-lucide="download" class="w-4 h-4"></i> Export Products CSV</button>';
+    '<button data-action="export-products-csv" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border bg-white text-brand-700 border-brand-300 cursor-pointer hover:bg-brand-50 transition-colors"><i data-lucide="download" class="w-4 h-4"></i> Exportar CSV de productos</button>';
   html += "</div>";
   html += "</div>";
 
   html += '<div class="bg-white border border-brand-300 rounded-xl overflow-hidden">';
   html += '<div class="px-5 py-4 border-b border-brand-100 bg-brand-50">';
-  html += '<h3 class="text-sm font-bold text-brand-800 uppercase tracking-wider">Date Range</h3>';
+  html += '<h3 class="text-sm font-bold text-brand-800 uppercase tracking-wider">Rango de fechas</h3>';
   html += "</div>";
   html += '<div class="px-5 py-4 flex items-end gap-4">';
   html +=
-    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Start Date<input type="date" id="report-start" value="' +
+    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Fecha de inicio<input type="date" id="report-start" value="' +
     startDate +
     '" class="border border-brand-200 rounded-lg px-3 py-2 text-sm text-neutral-700 bg-white cursor-pointer outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)] transition-all" /></label>';
   html +=
-    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">End Date<input type="date" id="report-end" value="' +
+    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Fecha de fin<input type="date" id="report-end" value="' +
     endDate +
     '" class="border border-brand-200 rounded-lg px-3 py-2 text-sm text-neutral-700 bg-white cursor-pointer outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)] transition-all" /></label>';
   html +=
-    '<button data-action="generate-report" class="flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Generate</button>';
+    '<button data-action="generate-report" class="flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Generar</button>';
   html += "</div></div>";
 
   html += '<div class="grid grid-cols-1 md:grid-cols-3 gap-5">';
   html += renderStatCard(
-    "Total Revenue",
+    "Ingresos totales",
     "$" +
       totalRev.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
     "dollar-sign",
     "bg-brand-100 text-brand-700"
   );
   html += renderStatCard(
-    "Total Orders",
+    "Órdenes totales",
     String(sales.total_orders),
     "shopping-bag",
     "bg-primary-100 text-primary-700"
   );
   html += renderStatCard(
-    "Avg. Order Value",
+    "Valor prom. por orden",
     "$" +
       avgOrder.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
     "receipt",
@@ -285,31 +285,31 @@ async function render(el) {
 
   html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-5">';
   html += '<div class="flex items-center justify-between mb-4">';
-  html += '<h3 class="text-base font-semibold text-primary-700 font-display">Daily Revenue</h3>';
+  html += '<h3 class="text-base font-semibold text-primary-700 font-display">Ingresos diarios</h3>';
   html += '<div class="flex gap-2">';
   html +=
-    '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-100 text-brand-700"><span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span> Revenue</span>';
+    '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-100 text-brand-700"><span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span> Ingresos</span>';
   html +=
-    '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-500"><span class="w-1.5 h-1.5 rounded-full bg-[#F2BA7A]"></span> Orders (scaled)</span>';
+    '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-500"><span class="w-1.5 h-1.5 rounded-full bg-[#F2BA7A]"></span> Órdenes (escalado)</span>';
   html += "</div></div>";
   html += '<div class="relative h-[240px]"><canvas id="reportsChart"></canvas></div>';
   html += "</div>";
 
   html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-0">';
   html += '<div class="px-5 pt-5 pb-4">';
-  html += '<h3 class="text-base font-semibold text-primary-700 font-display">Top Products</h3>';
+  html += '<h3 class="text-base font-semibold text-primary-700 font-display">Productos más vendidos</h3>';
   html += "</div>";
 
   if (topProducts.length === 0) {
     html +=
-      '<div class="px-5 py-8 text-center text-sm text-secondary-400">No product data available for this period</div>';
+      '<div class="px-5 py-8 text-center text-sm text-secondary-400">No hay datos de productos disponibles para este período</div>';
   } else {
-    html += '<div class="overflow-x-auto">';
+    html += "<div>";
     html += '<table class="w-full text-sm text-left">';
     html +=
       '<thead><tr class="text-xs font-bold text-brand-700 uppercase tracking-wide border-b-2 border-brand-300 bg-brand-50">';
     html +=
-      '<th class="px-5 py-3">Rank</th><th class="px-5 py-3">Product</th><th class="px-5 py-3 text-center">Quantity Sold</th><th class="px-5 py-3 text-right">Revenue</th><th class="px-5 py-3 text-right">% of Total</th>';
+      '<th class="px-5 py-3 hidden sm:table-cell">Posición</th><th class="px-5 py-3">Producto</th><th class="px-5 py-3 text-center">Cantidad vendida</th><th class="px-5 py-3 text-right">Ingresos</th><th class="px-5 py-3 text-right hidden sm:table-cell">% del total</th>';
     html += "</tr></thead>";
     html += "<tbody>";
     topProducts.forEach(function (p, i) {
@@ -317,7 +317,7 @@ async function render(el) {
       const pct = totalRev > 0 ? ((p.total_revenue / totalRev) * 100).toFixed(1) : "0";
       html += '<tr class="' + zebra + ' border-b border-brand-100">';
       html +=
-        '<td class="px-5 py-3.5"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-brand-100 text-brand-700 text-xs font-bold">' +
+        '<td class="px-5 py-3.5 hidden sm:table-cell"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-brand-100 text-brand-700 text-xs font-bold">' +
         (i + 1) +
         "</span></td>";
       html += '<td class="px-5 py-3.5 font-semibold text-brand-800">' + p.menu_item_name + "</td>";
@@ -326,7 +326,8 @@ async function render(el) {
         '<td class="px-5 py-3.5 text-right font-semibold text-brand-800">$' +
         p.total_revenue.toLocaleString(undefined, { minimumFractionDigits: 2 }) +
         "</td>";
-      html += '<td class="px-5 py-3.5 text-right text-secondary-500">' + pct + "%</td>";
+      html +=
+        '<td class="px-5 py-3.5 text-right text-secondary-500 hidden sm:table-cell">' + pct + "%</td>";
       html += "</tr>";
     });
     html += "</tbody></table></div>";

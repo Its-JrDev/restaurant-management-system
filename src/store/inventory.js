@@ -43,7 +43,7 @@ export async function updateItem(id, data) {
       await refreshItems();
       return { success: true, item };
     }
-    return { success: false, error: "Item not found" };
+    return { success: false, error: "Artículo no encontrado" };
   } catch (err) {
     return { success: false, error: err.message };
   }
@@ -53,7 +53,7 @@ export async function registerMovement(itemId, data) {
   try {
     const items = getCollection("inventory_items");
     const item = items.find(i => i.id === itemId);
-    if (!item) return { success: false, error: "Item not found" };
+    if (!item) return { success: false, error: "Artículo no encontrado" };
 
     const newQuantity = data.type === 'in' ? item.quantity + data.quantity : item.quantity - data.quantity;
     const updated = dbUpdateItem("inventory_items", itemId, { quantity: newQuantity });

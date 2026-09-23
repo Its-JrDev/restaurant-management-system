@@ -12,12 +12,12 @@ function CartPanel() {
 
   let html = '<div class="pos-cart-wrapper h-full">';
   
-  html += '<div class="fixed lg:hidden bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] left-0 right-0 p-3 z-40 bg-white border-t border-brand-200 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] flex items-center justify-between cursor-pointer" id="mobile-cart-bar">';
-  html += '<div class="flex items-center gap-3">';
-  html += '<span class="w-10 h-10 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-lg"><i data-lucide="shopping-cart" class="w-5 h-5"></i></span>';
-  html += '<div class="flex flex-col leading-tight"><span class="font-bold text-brand-900 text-sm">' + cartItems.length + ' items</span><span class="font-bold text-brand-600 text-base">$' + total.toFixed(2) + '</span></div>';
+  html += '<div class="fixed lg:hidden bottom-[var(--bottom-nav-h)] left-0 right-0 z-40 bg-white border-t border-brand-200 shadow-[0_-1px_6px_rgba(0,0,0,0.08)] flex items-center justify-between cursor-pointer" id="mobile-cart-bar">';
+  html += '<div class="flex items-center gap-3 px-3 min-w-0 flex-1">';
+  html += '<span class="w-10 h-10 shrink-0 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-lg"><i data-lucide="shopping-cart" class="w-5 h-5"></i></span>';
+  html += '<div class="flex flex-col leading-tight min-w-0"><span class="font-bold text-brand-900 text-sm truncate">' + cartItems.length + ' artículos</span><span class="font-bold text-brand-600 text-base tabular-nums">$' + total.toFixed(2) + '</span></div>';
   html += '</div>';
-  html += '<button class="bg-primary-600 text-white px-4 py-2 rounded-lg font-bold text-[13px] border-none pointer-events-none">Ver Pedido / Enviar</button>';
+  html += '<button class="shrink-0 bg-primary-600 text-white px-4 py-2 mr-3 rounded-lg font-bold text-[13px] border-none cursor-pointer transition-colors hover:bg-primary-700">Ver Pedido / Enviar</button>';
   html += '</div>';
 
   html += '<div id="cart-sheet-overlay" class="fixed inset-0 z-50 bg-black/50 hidden opacity-0 lg:static lg:bg-transparent lg:block lg:opacity-100 lg:h-full transition-opacity duration-300">';
@@ -28,13 +28,13 @@ function CartPanel() {
   html += '<div class="flex-1 flex flex-col p-5 min-h-0">';
 
   html += '<div class="flex items-center justify-between mb-4">';
-  html += '<h3 class="text-base font-semibold text-primary-700 font-display">Current Order</h3>';
+  html += '<h3 class="text-base font-semibold text-primary-700 font-display">Pedido actual</h3>';
   html += '<span id="cart-count" class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-600 text-white text-xs font-bold">' + cartItems.length + "</span>";
   html += "</div>";
 
   html += '<div id="cart-items" class="flex-1 overflow-y-auto space-y-3 min-h-[200px]">';
   if (cartItems.length === 0) {
-    html += '<p class="text-sm text-brand-400 italic text-center py-8">No items added yet</p>';
+    html += '<p class="text-sm text-brand-400 italic text-center py-8">Aún no hay artículos</p>';
   } else {
     cartItems.forEach(function (item, idx) {
       html += '<div class="flex items-center gap-3 p-3 bg-brand-50 rounded-lg">';
@@ -57,17 +57,17 @@ function CartPanel() {
 
   html += '<div class="border-t border-brand-200 pt-3 mt-3 space-y-2">';
   html += '<div class="flex justify-between text-sm text-brand-600"><span>Subtotal</span><span class="font-mono">$' + subtotal.toFixed(2) + "</span></div>";
-  html += '<div class="flex justify-between text-sm text-brand-600"><span>Tax (10%)</span><span class="font-mono">$' + tax.toFixed(2) + "</span></div>";
+  html += '<div class="flex justify-between text-sm text-brand-600"><span>Impuesto (10%)</span><span class="font-mono">$' + tax.toFixed(2) + "</span></div>";
   html += '<div class="flex justify-between text-base font-bold text-primary-800"><span>Total</span><span class="font-mono">$' + total.toFixed(2) + "</span></div>";
   html += "</div>";
 
   html += '<div class="mt-3">';
-  html += '<textarea id="cart-kitchen-note" rows="2" placeholder="Kitchen note (allergy, substitution...)" class="w-full border border-brand-300 rounded-md p-2 text-xs text-neutral-700 resize-none focus:outline-none focus:border-brand-500"></textarea>';
+  html += '<textarea id="cart-kitchen-note" rows="2" placeholder="Nota para la cocina (alergia, sustitución...)" class="w-full border border-brand-300 rounded-md p-2 text-xs text-neutral-700 resize-none focus:outline-none focus:border-brand-500"></textarea>';
   html += "</div>";
 
   html += '<div class="flex gap-2 mt-2">';
-  html += '<button id="cart-save-draft" class="flex-1 h-10 px-4 text-sm font-semibold rounded-md bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer transition-colors">Save Draft</button>';
-  html += '<button id="cart-send-kitchen" class="flex-1 h-10 px-4 text-sm font-semibold rounded-md bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors">Send to Kitchen</button>';
+  html += '<button id="cart-save-draft" class="flex-1 h-10 px-4 text-sm font-semibold rounded-md bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer transition-colors">Guardar borrador</button>';
+  html += '<button id="cart-send-kitchen" class="flex-1 h-10 px-4 text-sm font-semibold rounded-md bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors">Enviar a cocina</button>';
   html += "</div>";
   html += "</div></div></div></div>";
 
@@ -161,13 +161,13 @@ function setupCartEvents() {
       const tableSelect = document.getElementById("table-select");
       const tableId = tableSelect ? tableSelect.value : null;
       if (!tableId) {
-        toast.warning("No Table", "Please select a table before sending to kitchen");
+        toast.warning("Sin mesa", "Selecciona una mesa antes de enviar a la cocina");
         return;
       }
       const noteInput = document.getElementById("cart-kitchen-note");
       const kitchenNote = noteInput ? noteInput.value.trim() : "";
       sendBtn.disabled = true;
-      sendBtn.textContent = "Sending...";
+      sendBtn.textContent = "Enviando...";
       try {
         const reservationId = window._pendingReservationId || null;
         window._pendingReservationId = null;
@@ -193,14 +193,14 @@ function setupCartEvents() {
           refreshCart();
           window.dispatchEvent(new CustomEvent("cart:sent"));
         } else {
-          toast.error("Order Failed", "Failed to create order: " + (result.error || "Unknown error"));
+          toast.error("Error en la orden", "Error al crear la orden: " + (result.error || "Error desconocido"));
           sendBtn.disabled = false;
-          sendBtn.textContent = "Send to Kitchen";
+          sendBtn.textContent = "Enviar a cocina";
         }
       } catch (err) {
-        toast.error("Error", "Error sending to kitchen: " + err.message);
+        toast.error("Error", "Error al enviar a la cocina: " + err.message);
         sendBtn.disabled = false;
-        sendBtn.textContent = "Send to Kitchen";
+        sendBtn.textContent = "Enviar a cocina";
       }
       return;
     }

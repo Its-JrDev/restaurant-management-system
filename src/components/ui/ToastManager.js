@@ -14,7 +14,7 @@ class ToastManager {
       this.container = document.createElement("div");
       this.container.className =
         "fixed top-[80px] right-5 z-[9999] flex flex-col gap-3 pointer-events-none";
-      this.container.setAttribute("aria-label", "Notifications");
+      this.container.setAttribute("aria-label", "Notificaciones");
       document.body.appendChild(this.container);
     }
     return this.container;

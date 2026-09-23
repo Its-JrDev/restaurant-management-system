@@ -8,32 +8,32 @@ function TableStatusCard() {
 
   let html = '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-5 h-full">';
   html +=
-    '<h3 class="text-base font-semibold text-primary-700 font-display mb-4">Table Status</h3>';
+    '<h3 class="text-base font-semibold text-primary-700 font-display mb-4">Estado de las mesas</h3>';
 
   html += '<div class="flex flex-col gap-4">';
 
   html += '<div class="flex items-center justify-between">';
   html += '<div class="flex items-center gap-3">';
   html += '<span class="w-2.5 h-2.5 rounded-full bg-success-500"></span>';
-  html += '<span class="text-sm">Available</span>';
+  html += '<span class="text-sm">Disponible</span>';
   html += "</div>";
-  html += '<span class="text-sm font-semibold">' + statusCounts.available + " tables</span>";
+  html += '<span class="text-sm font-semibold">' + statusCounts.available + " mesas</span>";
   html += "</div>";
 
   html += '<div class="flex items-center justify-between">';
   html += '<div class="flex items-center gap-3">';
   html += '<span class="w-2.5 h-2.5 rounded-full bg-error-500"></span>';
-  html += '<span class="text-sm">Occupied</span>';
+  html += '<span class="text-sm">Ocupada</span>';
   html += "</div>";
-  html += '<span class="text-sm font-semibold">' + statusCounts.occupied + " tables</span>";
+  html += '<span class="text-sm font-semibold">' + statusCounts.occupied + " mesas</span>";
   html += "</div>";
 
   html += '<div class="flex items-center justify-between">';
   html += '<div class="flex items-center gap-3">';
   html += '<span class="w-2.5 h-2.5 rounded-full bg-accent-500"></span>';
-  html += '<span class="text-sm">Reserved</span>';
+  html += '<span class="text-sm">Reservada</span>';
   html += "</div>";
-  html += '<span class="text-sm font-semibold">' + statusCounts.reserved + " tables</span>";
+  html += '<span class="text-sm font-semibold">' + statusCounts.reserved + " mesas</span>";
   html += "</div>";
 
   html += '<div class="mt-2">';

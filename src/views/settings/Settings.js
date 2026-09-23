@@ -10,36 +10,36 @@ function render(el) {
   let html = '<div class="space-y-5 max-w-2xl">';
 
   html += '<div class="flex items-center justify-between">';
-  html += '<div><h2 class="text-xl font-semibold text-brand-900 font-display">Settings</h2>';
+  html += '<div><h2 class="text-xl font-semibold text-brand-900 font-display">Configuración</h2>';
   html +=
-    '<p class="text-sm text-secondary-500 mt-0.5">Restaurant profile and preferences</p></div>';
+    '<p class="text-sm text-secondary-500 mt-0.5">Perfil del restaurante y preferencias</p></div>';
   html += "</div>";
 
   html += '<div class="bg-white border border-brand-300 rounded-xl overflow-hidden">';
   html += '<div class="px-5 py-4 border-b border-brand-100 bg-brand-50">';
   html +=
-    '<h3 class="text-sm font-bold text-brand-800 uppercase tracking-wider">Restaurant Profile</h3>';
+    '<h3 class="text-sm font-bold text-brand-800 uppercase tracking-wider">Perfil del Restaurante</h3>';
   html += "</div>";
   html += '<div class="p-5">';
   html += '<div class="space-y-4">';
 
   html += InputField({
     id: "settings-name",
-    label: "Restaurant Name",
+    label: "Nombre del Restaurante",
     value: settings.restaurant_name || "",
   });
-  html += InputField({ id: "settings-address", label: "Address", value: settings.address || "" });
+  html += InputField({ id: "settings-address", label: "Dirección", value: settings.address || "" });
 
   html += '<div class="grid grid-cols-2 gap-4">';
   html += InputField({
     id: "settings-phone",
-    label: "Phone",
+    label: "Teléfono",
     type: "tel",
     value: settings.phone || "",
   });
   html += InputField({
     id: "settings-email",
-    label: "Email",
+    label: "Correo electrónico",
     type: "email",
     value: settings.email || "",
   });
@@ -50,14 +50,14 @@ function render(el) {
   html += '<div class="bg-white border border-brand-300 rounded-xl overflow-hidden">';
   html += '<div class="px-5 py-4 border-b border-brand-100 bg-brand-50">';
   html +=
-    '<h3 class="text-sm font-bold text-brand-800 uppercase tracking-wider">Tax & Currency</h3>';
+    '<h3 class="text-sm font-bold text-brand-800 uppercase tracking-wider">Impuestos y Moneda</h3>';
   html += "</div>";
   html += '<div class="p-5">';
   html += '<div class="grid grid-cols-3 gap-4">';
 
   html += InputField({
     id: "settings-tax",
-    label: "Tax Rate (%)",
+    label: "Tasa de Impuesto (%)",
     type: "number",
     value: settings.tax_rate || 0,
     step: "0.1",
@@ -66,14 +66,14 @@ function render(el) {
   });
   html += InputField({
     id: "settings-currency-symbol",
-    label: "Currency Symbol",
+    label: "Símbolo de Moneda",
     value: settings.currency_symbol || "$",
     maxlength: "3",
   });
 
   html += "<div>";
   html +=
-    '<label class="block text-sm font-semibold text-secondary-600 mb-1">Currency Code</label>';
+    '<label class="block text-sm font-semibold text-secondary-600 mb-1">Código de Moneda</label>';
   html +=
     '<select id="settings-currency-code" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white cursor-pointer outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)] transition-all">';
   const codes = ["USD", "EUR", "GBP", "MXN", "CAD", "JPY"];
@@ -93,9 +93,9 @@ function render(el) {
 
   html += '<div class="flex items-center gap-3">';
   html +=
-    '<button data-action="save-settings" class="flex items-center gap-2 px-6 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="check" class="w-4 h-4"></i> Save Settings</button>';
+    '<button data-action="save-settings" class="flex items-center gap-2 px-6 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="check" class="w-4 h-4"></i> Guardar Configuración</button>';
   html +=
-    '<button data-action="reset-settings" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reset to Defaults</button>';
+    '<button data-action="reset-settings" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Restablecer por Defecto</button>';
   html += "</div>";
 
   html += "</div>";
@@ -120,19 +120,19 @@ function render(el) {
         currency_code: (document.getElementById("settings-currency-code") || {}).value || "USD",
       };
       settingsStore.updateSettings(data);
-      toast.success("Saved", "Settings updated successfully");
+      toast.success("Guardado", "Configuración actualizada correctamente");
       render(el);
     } else if (action === "reset-settings") {
       confirmModal
         .show({
-          title: "Reset Settings",
-          message: "Reset all settings to defaults? This action cannot be undone.",
-          confirmText: "Reset",
+          title: "Restablecer Configuración",
+          message: "¿Restablecer toda la configuración a los valores predeterminados? Esta acción no se puede deshacer.",
+          confirmText: "Restablecer",
         })
         .then((confirmed) => {
           if (confirmed) {
             settingsStore.resetSettings();
-            toast.success("Reset", "Settings restored to defaults");
+            toast.success("Restablecido", "Configuración restaurada a los valores predeterminados");
             render(el);
           }
         });

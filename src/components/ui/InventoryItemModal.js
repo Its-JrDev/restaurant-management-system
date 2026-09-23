@@ -1,39 +1,39 @@
 import { formModal } from "./FormModal.js";
 
 const UNITS = [
-  { id: "kg", name: "Kilograms" },
-  { id: "L", name: "Liters" },
-  { id: "bunch", name: "Bunches" },
-  { id: "unit", name: "Units" },
-  { id: "g", name: "Grams" },
-  { id: "ml", name: "Milliliters" },
-  { id: "oz", name: "Ounces" },
-  { id: "lb", name: "Pounds" },
+  { id: "kg", name: "Kilogramos" },
+  { id: "L", name: "Litros" },
+  { id: "bunch", name: "Manojos" },
+  { id: "unit", name: "Unidades" },
+  { id: "g", name: "Gramos" },
+  { id: "ml", name: "Mililitros" },
+  { id: "oz", name: "Onzas" },
+  { id: "lb", name: "Libras" },
 ];
 
 class InventoryItemModal {
-  async show({ title = "New Item", preset = {} } = {}) {
+  async show({ title = "Nuevo artículo", preset = {} } = {}) {
     const unitOptions = [
-      { value: "", label: "Select unit..." },
+      { value: "", label: "Seleccionar unidad..." },
       ...UNITS.map((u) => ({ value: u.id, label: `${u.name} (${u.id})` })),
     ];
 
     return formModal.show({
       title,
       width: 420,
-      confirmText: "Save Item",
+      confirmText: "Guardar artículo",
       fields: [
         {
           id: "name",
-          label: "Name",
+          label: "Nombre",
           type: "text",
           required: true,
           value: preset.name || "",
-          placeholder: "e.g. Extra Virgin Olive Oil",
+          placeholder: "Ej. Aceite de oliva extra",
         },
         {
           id: "unit",
-          label: "Unit",
+          label: "Unidad",
           type: "select",
           required: true,
           value: preset.unit || "",
@@ -41,7 +41,7 @@ class InventoryItemModal {
         },
         {
           id: "quantity",
-          label: "Quantity",
+          label: "Cantidad",
           type: "number",
           required: true,
           value: preset.quantity || 0,
@@ -50,7 +50,7 @@ class InventoryItemModal {
         },
         {
           id: "min_stock",
-          label: "Minimum Stock",
+          label: "Stock mínimo",
           type: "number",
           required: true,
           value: preset.min_stock || 0,
@@ -59,7 +59,7 @@ class InventoryItemModal {
         },
         {
           id: "is_active",
-          label: "Active",
+          label: "Activo",
           type: "checkbox",
           value: preset.is_active !== false,
           fullWidth: true,

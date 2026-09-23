@@ -20,7 +20,7 @@ export function saveCollection(name, data) {
 
 export function insertItem(collectionName, item) {
   const coll = getCollection(collectionName);
-  if (!Array.isArray(coll)) throw new Error(`Collection ${collectionName} is not an array`);
+  if (!Array.isArray(coll)) throw new Error(`La colección ${collectionName} no es un arreglo`);
   coll.push(item);
   saveCollection(collectionName, coll);
   return item;
@@ -28,7 +28,7 @@ export function insertItem(collectionName, item) {
 
 export function updateItem(collectionName, id, updates) {
   const coll = getCollection(collectionName);
-  if (!Array.isArray(coll)) throw new Error(`Collection ${collectionName} is not an array`);
+  if (!Array.isArray(coll)) throw new Error(`La colección ${collectionName} no es un arreglo`);
   const index = coll.findIndex((x) => x.id === id);
   if (index !== -1) {
     coll[index] = { ...coll[index], ...updates };
@@ -40,7 +40,7 @@ export function updateItem(collectionName, id, updates) {
 
 export function deleteItem(collectionName, id) {
   const coll = getCollection(collectionName);
-  if (!Array.isArray(coll)) throw new Error(`Collection ${collectionName} is not an array`);
+  if (!Array.isArray(coll)) throw new Error(`La colección ${collectionName} no es un arreglo`);
   const newColl = coll.filter((x) => x.id !== id);
   saveCollection(collectionName, newColl);
 }

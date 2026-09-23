@@ -8,14 +8,14 @@ import CheckboxField from "../../components/forms/CheckboxField.js";
 import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
 const UNITS = [
-  { id: "kg", name: "Kilograms" },
-  { id: "L", name: "Liters" },
-  { id: "bunch", name: "Bunches" },
-  { id: "unit", name: "Units" },
-  { id: "g", name: "Grams" },
-  { id: "ml", name: "Milliliters" },
-  { id: "oz", name: "Ounces" },
-  { id: "lb", name: "Pounds" },
+  { id: "kg", name: "Kilogramos" },
+  { id: "L", name: "Litros" },
+  { id: "bunch", name: "Manojos" },
+  { id: "unit", name: "Unidades" },
+  { id: "g", name: "Gramos" },
+  { id: "ml", name: "Mililitros" },
+  { id: "oz", name: "Onzas" },
+  { id: "lb", name: "Libras" },
 ];
 
 let subView = "list";
@@ -33,7 +33,7 @@ function stockStatus(item) {
 
 function statusBadge(item) {
   const status = stockStatus(item);
-  const labels = { active: "In Stock", low_stock: "Low Stock", inactive: "Inactive" };
+  const labels = { active: "En stock", low_stock: "Stock bajo", inactive: "Inactivo" };
   const colors = {
     active: "bg-success-100 text-success-700",
     low_stock: "bg-error-100 text-error-700",
@@ -105,9 +105,9 @@ function getFiltered() {
 function formatDate(dateStr) {
   const date = new Date(dateStr);
   return (
-    date.toLocaleDateString() +
+    date.toLocaleDateString("es-ES") +
     " " +
-    date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    date.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })
   );
 }
 
@@ -130,11 +130,11 @@ function renderList(el) {
   let html = '<div class="space-y-5">';
 
   html += '<div class="flex items-center justify-between">';
-  html += '<div><h2 class="text-xl font-semibold text-brand-900 font-display">Inventory</h2>';
+  html += '<div><h2 class="text-xl font-semibold text-brand-900 font-display">Inventario</h2>';
   html +=
     '<p class="text-sm text-secondary-500 mt-0.5">' +
     items.length +
-    " item" +
+    " artículo" +
     (items.length !== 1 ? "s" : "") +
     "</p></div>";
   html += '<div class="flex gap-2">';
@@ -142,20 +142,20 @@ function renderList(el) {
     html +=
       '<span class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-error-100 text-error-700"><i data-lucide="alert-triangle" class="w-4 h-4"></i> ' +
       counts.low_stock +
-      " low stock</span>";
+      " stock bajo</span>";
   }
   if (hasAnyRole("admin")) {
     html +=
-      '<button data-action="create-item" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> Add Item</button>';
+      '<button data-action="create-item" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> Agregar artículo</button>';
   }
   html += "</div></div>";
 
   html += '<div class="flex flex-wrap gap-2">';
   const tabs = [
-    { key: "all", label: "All" },
-    { key: "active", label: "In Stock" },
-    { key: "low_stock", label: "Low Stock" },
-    { key: "inactive", label: "Inactive" },
+    { key: "all", label: "Todos" },
+    { key: "active", label: "En stock" },
+    { key: "low_stock", label: "Stock bajo" },
+    { key: "inactive", label: "Inactivos" },
   ];
   tabs.forEach(function (tab) {
     const isActive = activeFilter === tab.key;
@@ -184,17 +184,17 @@ function renderList(el) {
   html +=
     '<input type="text" id="inv-search" value="' +
     searchQuery +
-    '" placeholder="Search inventory..." class="flex-1 text-sm text-neutral-900 outline-none border-none bg-transparent placeholder:text-secondary-400" />';
+    '" placeholder="Buscar en el inventario..." class="flex-1 text-sm text-neutral-900 outline-none border-none bg-transparent placeholder:text-secondary-400" />';
   if (searchQuery) {
     html +=
       '<button data-action="clear-search" class="text-secondary-400 hover:text-secondary-600 cursor-pointer bg-transparent border-none p-0"><i data-lucide="x" class="w-4 h-4"></i></button>';
   }
   html += "</div></div>";
 
-  html += '<div class="overflow-x-auto">';
+  html += '<div class="hidden md:block">';
   html += '<table class="w-full">';
   html += '<thead><tr class="border-b-2 border-brand-100">';
-  const cols = ["Item", "Unit", "Stock Level", "Min Stock", "Status", "Updated", "Actions"];
+  const cols = ["Artículo", "Unidad", "Nivel de stock", "Stock mínimo", "Estado", "Actualizado", "Acciones"];
   cols.forEach(function (c) {
     html +=
       '<th class="px-5 py-3 text-left text-xs font-bold text-brand-700 uppercase tracking-wider bg-brand-50">' +
@@ -208,10 +208,10 @@ function renderList(el) {
     html += '<tr><td colspan="7" class="px-5 py-12 text-center">';
     html += '<div class="flex flex-col items-center gap-2">';
     html += '<i data-lucide="package" class="w-12 h-12 text-brand-300"></i>';
-    html += '<p class="text-sm text-secondary-500">No inventory items found</p>';
+    html += '<p class="text-sm text-secondary-500">No se encontraron artículos en el inventario</p>';
     if (searchQuery || activeFilter !== "all") {
       html +=
-        '<button data-action="clear-filters" class="text-sm text-brand-600 hover:text-brand-700 cursor-pointer">Clear filters</button>';
+        '<button data-action="clear-filters" class="text-sm text-brand-600 hover:text-brand-700 cursor-pointer">Limpiar filtros</button>';
     }
     html += "</div></td></tr>";
   } else {
@@ -228,7 +228,7 @@ function renderList(el) {
         item.name +
         "</div></td>";
       html += '<td class="px-5 py-3.5 text-sm text-neutral-600">' + item.unit + "</td>";
-      html += '<td class="px-5 py-3.5 min-w-[160px]">' + stockBar(item) + "</td>";
+      html += '<td class="px-5 py-3.5">' + stockBar(item) + "</td>";
       html +=
         '<td class="px-5 py-3.5 text-sm text-neutral-600 text-center">' +
         item.min_stock +
@@ -244,19 +244,77 @@ function renderList(el) {
       html +=
         '<button data-action="view-detail" data-item-id="' +
         item.id +
-        '" class="w-7 h-7 inline-flex items-center justify-center rounded-md bg-transparent text-brand-600 hover:bg-brand-100 border-0 cursor-pointer" title="View"><i data-lucide="eye" class="w-4 h-4"></i></button>';
+        '" class="w-7 h-7 inline-flex items-center justify-center rounded-md bg-transparent text-brand-600 hover:bg-brand-100 border-0 cursor-pointer" title="Ver"><i data-lucide="eye" class="w-4 h-4"></i></button>';
       if (hasAnyRole("admin")) {
         html +=
           '<button data-action="edit-item" data-item-id="' +
           item.id +
-          '" class="w-7 h-7 inline-flex items-center justify-center rounded-md bg-transparent text-primary-600 hover:bg-primary-100 border-0 cursor-pointer" title="Edit"><i data-lucide="pencil" class="w-4 h-4"></i></button>';
+          '" class="w-7 h-7 inline-flex items-center justify-center rounded-md bg-transparent text-primary-600 hover:bg-primary-100 border-0 cursor-pointer" title="Editar"><i data-lucide="pencil" class="w-4 h-4"></i></button>';
       }
       html += "</div></td>";
       html += "</tr>";
     });
   }
 
-  html += "</tbody></table></div></div>";
+  html += "</tbody></table></div>";
+
+  html += '<div class="md:hidden p-4 space-y-3">';
+  if (items.length === 0) {
+    html += '<div class="flex flex-col items-center gap-2 py-10 text-center">';
+    html += '<i data-lucide="package" class="w-10 h-10 text-brand-300"></i>';
+    html += '<p class="text-sm text-secondary-500">No se encontraron artículos en el inventario</p>';
+    if (searchQuery || activeFilter !== "all") {
+      html +=
+        '<button data-action="clear-filters" class="text-sm text-brand-600 hover:text-brand-700 cursor-pointer">Limpiar filtros</button>';
+    }
+    html += "</div>";
+  } else {
+    items.forEach(function (item) {
+      html +=
+        '<div class="bg-white border border-brand-300 rounded-xl p-4 shadow-sm space-y-3">';
+      html += '<div class="flex items-start justify-between gap-2">';
+      html += '<div class="min-w-0">';
+      html += '<p class="font-semibold text-brand-800 text-sm truncate">' + item.name + "</p>";
+      html += "</div>";
+      html += '<span class="shrink-0">' + statusBadge(item) + "</span>";
+      html += "</div>";
+      html += '<div class="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">';
+      html +=
+        '<div class="min-w-0"><span class="block text-[11px] font-bold uppercase tracking-wider text-secondary-500">Unidad</span><span class="text-brand-900">' +
+        item.unit +
+        "</span></div>";
+      html +=
+        '<div class="min-w-0"><span class="block text-[11px] font-bold uppercase tracking-wider text-secondary-500">Nivel de stock</span>' +
+        stockBar(item) +
+        "</div>";
+      html +=
+        '<div class="col-span-2 min-w-0"><span class="block text-[11px] font-bold uppercase tracking-wider text-secondary-500">Stock mínimo</span><span class="text-brand-900">' +
+        item.min_stock +
+        " " +
+        item.unit +
+        "</span></div>";
+      html +=
+        '<div class="col-span-2 min-w-0"><span class="block text-[11px] font-bold uppercase tracking-wider text-secondary-500">Actualizado</span><span class="text-secondary-500">' +
+        formatDate(item.updated_at) +
+        "</span></div>";
+      html += "</div>";
+      html += '<div class="flex items-center justify-end gap-1.5 border-t border-brand-100 pt-3">';
+      html +=
+        '<button data-action="view-detail" data-item-id="' +
+        item.id +
+        '" class="w-7 h-7 inline-flex items-center justify-center rounded-md bg-transparent text-brand-600 hover:bg-brand-100 border-0 cursor-pointer" title="Ver"><i data-lucide="eye" class="w-4 h-4"></i></button>';
+      if (hasAnyRole("admin")) {
+        html +=
+          '<button data-action="edit-item" data-item-id="' +
+          item.id +
+          '" class="w-7 h-7 inline-flex items-center justify-center rounded-md bg-transparent text-primary-600 hover:bg-primary-100 border-0 cursor-pointer" title="Editar"><i data-lucide="pencil" class="w-4 h-4"></i></button>';
+      }
+      html += "</div>";
+      html += "</div>";
+    });
+  }
+  html += "</div>";
+  html += "</div>";
   html += "</div>";
 
   el.innerHTML = html;
@@ -282,7 +340,7 @@ async function renderDetail(el, itemId) {
   html += '<div class="flex items-center justify-between">';
   html += '<div class="flex items-center gap-3">';
   html +=
-    '<button data-action="back-to-list" class="flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>';
+    '<button data-action="back-to-list" class="flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="arrow-left" class="w-4 h-4"></i> Volver</button>';
   html += '<h2 class="text-xl font-semibold text-brand-900 font-display">' + item.name + "</h2>";
   html += "</div>";
   html += '<div class="flex items-center gap-3">' + statusBadge(item);
@@ -290,30 +348,30 @@ async function renderDetail(el, itemId) {
 
   html += '<div class="grid grid-cols-2 md:grid-cols-4 gap-4">';
   html +=
-    '<div class="bg-white border border-brand-200 rounded-lg p-4 text-center"><div class="text-[11px] font-bold text-secondary-500 uppercase tracking-wider mb-1">Quantity</div><div class="text-2xl font-bold text-brand-900">' +
+    '<div class="bg-white border border-brand-200 rounded-lg p-4 text-center"><div class="text-[11px] font-bold text-secondary-500 uppercase tracking-wider mb-1">Cantidad</div><div class="text-2xl font-bold text-brand-900">' +
     item.quantity +
     " <span class='text-sm font-normal text-secondary-500'>" +
     item.unit +
     "</span></div></div>";
   html +=
-    '<div class="bg-white border border-brand-200 rounded-lg p-4 text-center"><div class="text-[11px] font-bold text-secondary-500 uppercase tracking-wider mb-1">Min Stock</div><div class="text-2xl font-bold text-brand-900">' +
+    '<div class="bg-white border border-brand-200 rounded-lg p-4 text-center"><div class="text-[11px] font-bold text-secondary-500 uppercase tracking-wider mb-1">Stock mínimo</div><div class="text-2xl font-bold text-brand-900">' +
     item.min_stock +
     " <span class='text-sm font-normal text-secondary-500'>" +
     item.unit +
     "</span></div></div>";
   html +=
-    '<div class="bg-white border border-brand-200 rounded-lg p-4 text-center"><div class="text-[11px] font-bold text-secondary-500 uppercase tracking-wider mb-1">Unit</div><div class="text-2xl font-bold text-brand-900">' +
+    '<div class="bg-white border border-brand-200 rounded-lg p-4 text-center"><div class="text-[11px] font-bold text-secondary-500 uppercase tracking-wider mb-1">Unidad</div><div class="text-2xl font-bold text-brand-900">' +
     item.unit +
     "</div></div>";
   html +=
-    '<div class="bg-white border border-brand-200 rounded-lg p-4 text-center"><div class="text-[11px] font-bold text-secondary-500 uppercase tracking-wider mb-1">Status</div><div class="mt-1">' +
+    '<div class="bg-white border border-brand-200 rounded-lg p-4 text-center"><div class="text-[11px] font-bold text-secondary-500 uppercase tracking-wider mb-1">Estado</div><div class="mt-1">' +
     statusBadge(item) +
     "</div></div>";
   html += "</div>";
 
   html += '<div class="bg-white border border-brand-300 rounded-xl overflow-hidden">';
   html += '<div class="px-5 py-4 border-b border-brand-100 bg-brand-50">';
-  html += '<h3 class="text-sm font-bold text-brand-800 uppercase tracking-wider">Stock Level</h3>';
+  html += '<h3 class="text-sm font-bold text-brand-800 uppercase tracking-wider">Nivel de stock</h3>';
   html += "</div>";
   html += '<div class="p-5">';
   const qty = parseFloat(item.quantity);
@@ -326,7 +384,7 @@ async function renderDetail(el, itemId) {
     qty +
     " " +
     item.unit +
-    "</span><span class='text-xs text-secondary-400'>of max capacity</span></div>";
+    "</span><span class='text-xs text-secondary-400'>de la capacidad máxima</span></div>";
   html +=
     '<div class="h-4 rounded-full bg-neutral-100 overflow-hidden"><div class="' +
     barColor +
@@ -334,7 +392,7 @@ async function renderDetail(el, itemId) {
     pct +
     '%"></div></div>';
   html +=
-    '<div class="flex justify-between mt-2 text-xs text-secondary-500"><span>0</span><span class="font-semibold text-error-600">Min: ' +
+    '<div class="flex justify-between mt-2 text-xs text-secondary-500"><span>0</span><span class="font-semibold text-error-600">Mín: ' +
     min +
     " " +
     item.unit +
@@ -350,20 +408,20 @@ async function renderDetail(el, itemId) {
     html +=
       '<button data-action="stock-in" data-item-id="' +
       item.id +
-      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-success-600 hover:bg-success-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="plus-circle" class="w-4 h-4"></i> Stock In</button>';
+      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-success-600 hover:bg-success-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="plus-circle" class="w-4 h-4"></i> Entrada de stock</button>';
     html +=
       '<button data-action="stock-out" data-item-id="' +
       item.id +
-      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-accent-600 hover:bg-accent-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="minus-circle" class="w-4 h-4"></i> Stock Out</button>';
+      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-accent-600 hover:bg-accent-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="minus-circle" class="w-4 h-4"></i> Salida de stock</button>';
     html += '<div class="flex-1"></div>';
     html +=
       '<button data-action="edit-item" data-item-id="' +
       item.id +
-      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="pencil" class="w-4 h-4"></i> Edit</button>';
+      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="pencil" class="w-4 h-4"></i> Editar</button>';
     html +=
       '<button data-action="delete-item" data-item-id="' +
       item.id +
-      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-error-600 hover:bg-error-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i> Delete</button>';
+      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-error-600 hover:bg-error-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i> Eliminar</button>';
   }
   html += "</div>";
 
@@ -372,24 +430,24 @@ async function renderDetail(el, itemId) {
   html += '<div class="bg-white border border-brand-300 rounded-xl overflow-hidden">';
   html += '<div class="px-5 py-4 border-b border-brand-100 bg-brand-50">';
   html +=
-    '<h3 class="text-sm font-bold text-brand-800 uppercase tracking-wider">Recent Movements</h3>';
+    '<h3 class="text-sm font-bold text-brand-800 uppercase tracking-wider">Movimientos recientes</h3>';
   html += "</div>";
 
   if (movements.length === 0) {
     html +=
-      '<div class="px-5 py-8 text-center text-sm text-secondary-400">No movements recorded yet</div>';
+      '<div class="px-5 py-8 text-center text-sm text-secondary-400">Aún no hay movimientos registrados</div>';
   } else {
-    html += '<div class="overflow-x-auto">';
+    html += "<div>";
     html += '<table class="w-full">';
     html += '<thead><tr class="border-b border-brand-100">';
     html +=
-      '<th class="px-5 py-3 text-left text-xs font-bold text-brand-700 uppercase tracking-wider bg-brand-50">Type</th>';
+      '<th class="px-5 py-3 text-left text-xs font-bold text-brand-700 uppercase tracking-wider bg-brand-50">Tipo</th>';
     html +=
-      '<th class="px-5 py-3 text-left text-xs font-bold text-brand-700 uppercase tracking-wider bg-brand-50">Quantity</th>';
+      '<th class="px-5 py-3 text-left text-xs font-bold text-brand-700 uppercase tracking-wider bg-brand-50">Cantidad</th>';
     html +=
-      '<th class="px-5 py-3 text-left text-xs font-bold text-brand-700 uppercase tracking-wider bg-brand-50">Reason</th>';
+      '<th class="px-5 py-3 text-left text-xs font-bold text-brand-700 uppercase tracking-wider bg-brand-50">Motivo</th>';
     html +=
-      '<th class="px-5 py-3 text-left text-xs font-bold text-brand-700 uppercase tracking-wider bg-brand-50">Date</th>';
+      '<th class="px-5 py-3 text-left text-xs font-bold text-brand-700 uppercase tracking-wider bg-brand-50">Fecha</th>';
     html += "</tr></thead>";
     html += "<tbody>";
     movements.forEach(function (m) {
@@ -405,7 +463,7 @@ async function renderDetail(el, itemId) {
         '"><i data-lucide="' +
         typeIcon +
         '" class="w-3 h-3"></i> ' +
-        (m.type === "in" ? "In" : "Out") +
+        (m.type === "in" ? "Entrada" : "Salida") +
         "</span></td>";
       html +=
         '<td class="px-5 py-3 font-semibold text-brand-800">' +
@@ -433,7 +491,7 @@ function renderMovementForm(el, itemId, type) {
   const form = el.querySelector("#movement-form");
   if (!form) return;
 
-  const title = type === "in" ? "Stock In" : "Stock Out";
+  const title = type === "in" ? "Entrada de stock" : "Salida de stock";
   const btnColor =
     type === "in" ? "bg-success-600 hover:bg-success-700" : "bg-accent-600 hover:bg-accent-700";
 
@@ -448,9 +506,9 @@ function renderMovementForm(el, itemId, type) {
   html += '<div class="p-5">';
   html += '<div class="grid grid-cols-2 gap-4 max-w-md">';
   html +=
-    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Quantity<input type="number" id="movement-qty" min="0.1" step="0.1" placeholder="0.0" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)] transition-all" /></label>';
+    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Cantidad<input type="number" id="movement-qty" min="0.1" step="0.1" placeholder="0.0" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)] transition-all" /></label>';
   html +=
-    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Reason<input type="text" id="movement-reason" placeholder="e.g. Supplier delivery" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)] transition-all" /></label>';
+    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Motivo<input type="text" id="movement-reason" placeholder="p. ej. Entrega de proveedor" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)] transition-all" /></label>';
   html += "</div>";
   html += '<div class="flex gap-3 mt-4">';
   html +=
@@ -460,11 +518,11 @@ function renderMovementForm(el, itemId, type) {
     type +
     '" class="flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-lg text-white border-0 cursor-pointer transition-colors ' +
     btnColor +
-    '"><i data-lucide="check" class="w-4 h-4"></i> Confirm ' +
+    '"><i data-lucide="check" class="w-4 h-4"></i> Confirmar ' +
     title +
     "</button>";
   html +=
-    '<button data-action="cancel-movement" class="px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors">Cancel</button>';
+    '<button data-action="cancel-movement" class="px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors">Cancelar</button>';
   html += "</div>";
   html += "</div></div>";
 
@@ -484,34 +542,34 @@ async function renderForm(el, itemId) {
 
   html += '<div class="flex items-center justify-between">';
   html +=
-    '<button data-action="back-to-list" class="flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>';
+    '<button data-action="back-to-list" class="flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="arrow-left" class="w-4 h-4"></i> Volver</button>';
   html +=
     '<h2 class="text-xl font-semibold text-brand-900 font-display">' +
-    (isEdit ? "Edit Item" : "New Item") +
+    (isEdit ? "Editar artículo" : "Nuevo artículo") +
     "</h2>";
   html += "</div>";
 
   html += '<div class="bg-white border border-brand-300 rounded-xl overflow-hidden">';
   html += '<div class="px-5 py-4 border-b border-brand-100 bg-brand-50">';
   html +=
-    '<h3 class="text-sm font-bold text-brand-800 uppercase tracking-wider">Item Information</h3>';
+    '<h3 class="text-sm font-bold text-brand-800 uppercase tracking-wider">Información del artículo</h3>';
   html += "</div>";
   html += '<div class="p-5">';
   html += '<div class="space-y-4 max-w-md">';
 
   html += "<div>";
-  html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Name *</label>';
+  html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Nombre *</label>';
   html +=
     '<input type="text" id="inv-name" value="' +
     (item ? item.name : "") +
-    '" placeholder="e.g. Extra Virgin Olive Oil" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)] transition-all" />';
+    '" placeholder="p. ej. Aceite de oliva virgen extra" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)] transition-all" />';
   html += "</div>";
 
   html += "<div>";
-  html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Unit *</label>';
+  html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Unidad *</label>';
   html +=
     '<select id="inv-unit" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white cursor-pointer outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)] transition-all">';
-  html += '<option value="">Select unit...</option>';
+  html += '<option value="">Seleccionar unidad...</option>';
   UNITS.forEach(function (u) {
     html +=
       '<option value="' +
@@ -528,21 +586,21 @@ async function renderForm(el, itemId) {
 
   html += '<div class="grid grid-cols-2 gap-4">';
   html +=
-    '<div><label class="block text-sm font-semibold text-secondary-600 mb-1">Quantity *</label>';
+    '<div><label class="block text-sm font-semibold text-secondary-600 mb-1">Cantidad *</label>';
   html +=
     '<input type="number" id="inv-quantity" step="0.1" min="0" value="' +
     (item ? item.quantity : "0") +
     '" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)] transition-all" /></div>';
 
   html +=
-    '<div><label class="block text-sm font-semibold text-secondary-600 mb-1">Minimum Stock *</label>';
+    '<div><label class="block text-sm font-semibold text-secondary-600 mb-1">Stock mínimo *</label>';
   html +=
     '<input type="number" id="inv-min-stock" step="0.1" min="0" value="' +
     (item ? item.min_stock : "0") +
     '" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)] transition-all" /></div>';
   html += "</div>";
 
-  html += CheckboxField({ id: "inv-active", label: "Active", checked: !item || item.is_active });
+  html += CheckboxField({ id: "inv-active", label: "Activo", checked: !item || item.is_active });
 
   html += "</div></div></div>";
 
@@ -551,10 +609,10 @@ async function renderForm(el, itemId) {
     '<button data-action="save-item" data-item-id="' +
     (itemId || "") +
     '" class="flex items-center gap-2 px-6 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="check" class="w-4 h-4"></i> ' +
-    (isEdit ? "Save Changes" : "Create Item") +
+    (isEdit ? "Guardar cambios" : "Crear artículo") +
     "</button>";
   html +=
-    '<button data-action="back-to-list" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors">Cancel</button>';
+    '<button data-action="back-to-list" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors">Cancelar</button>';
   html += "</div>";
 
   html += "</div>";
@@ -651,7 +709,7 @@ function setupDetailEvents(el, itemId) {
       const type = btn.getAttribute("data-movement-type");
 
       if (!qty || qty <= 0) {
-        toast.warning("Invalid Quantity", "Please enter a valid quantity");
+        toast.warning("Cantidad no válida", "Introduce una cantidad válida");
         return;
       }
 
@@ -665,8 +723,8 @@ function setupDetailEvents(el, itemId) {
     } else if (action === "delete-item") {
       if (
         await confirmModal.show({
-          title: "Delete Item",
-          message: "Are you sure you want to delete this item?",
+          title: "Eliminar artículo",
+          message: "¿Seguro que quieres eliminar este artículo?",
         })
       ) {
         await inventoryService.deleteItem(itemId);
@@ -712,11 +770,11 @@ function setupFormEvents(el) {
       const active = (document.getElementById("inv-active") || {}).checked;
 
       if (!name.trim()) {
-        toast.warning("Missing Name", "Please enter a name");
+        toast.warning("Falta el nombre", "Introduce un nombre");
         return;
       }
       if (!unit) {
-        toast.warning("Missing Unit", "Please select a unit");
+        toast.warning("Falta la unidad", "Selecciona una unidad");
         return;
       }
 

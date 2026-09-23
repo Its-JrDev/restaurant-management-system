@@ -24,6 +24,7 @@ const ROLE_ACCESS = {
   "/inventory": [ROLES.ADMIN, ROLES.CHEF],
   "/reports": [ROLES.ADMIN],
   "/settings": [ROLES.ADMIN],
+  "/notifications": ["*"],
   "/menu": ["*"],
   "/": ["*"],
 };

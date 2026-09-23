@@ -10,8 +10,19 @@ const menuStore = createStore({
   error: null,
 });
 
+function mapProduct(item) {
+  return {
+    ...item,
+    available: item.is_available !== undefined ? item.is_available !== false : true,
+  };
+}
+
+function getMappedProducts() {
+  return getCollection("menu_items").map(mapProduct);
+}
+
 export async function loadProducts() {
-  const all = getCollection("menu_items");
+  const all = getMappedProducts();
   menuStore.setState({ products: all, filteredProducts: all });
 }
 
@@ -28,7 +39,7 @@ export async function applyFilters({ category, available, search } = {}) {
     search: search !== undefined ? search : current.search,
   };
 
-  const all = getCollection("menu_items");
+  const all = getMappedProducts();
   let filtered = all;
 
   if (filters.category) {
@@ -41,7 +52,7 @@ export async function applyFilters({ category, available, search } = {}) {
   // If there's an 'available' filter (boolean or string representation)
   if (filters.available !== "") {
     const isAvail = filters.available === true || filters.available === "true";
-    filtered = filtered.filter(p => p.is_available === isAvail || p.available === isAvail);
+    filtered = filtered.filter(p => p.available === isAvail);
   }
 
   menuStore.setState({ filters, filteredProducts: filtered });
@@ -60,12 +71,12 @@ export function getFilteredProducts() {
 }
 
 export async function getProductById(id) {
-  const all = getCollection("menu_items");
+  const all = getMappedProducts();
   return all.find(p => p.id === id) || null;
 }
 
 export async function refreshProducts() {
-  const all = getCollection("menu_items");
+  const all = getMappedProducts();
   menuStore.setState({ products: all });
   await applyFilters();
 }

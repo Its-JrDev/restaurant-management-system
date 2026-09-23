@@ -1,77 +1,81 @@
 import { getLogoPath, toggleTheme, isDark } from "../../utils/theme.js";
 import { isRouteAllowed } from "../../utils/routeGuard.js";
+import NotificationBell from "../notifications/NotificationBell.js";
+import { getUnreadCount } from "../../store/notifications.js";
 
 let sidebarOpen = false;
 
 const NAV_SECTIONS = [
   {
-    label: "Main",
+    label: "Principal",
     items: [
       {
         icon: "layout-dashboard",
-        label: "Dashboard",
+        label: "Panel",
         path: "/dashboard",
         badge: "",
         roles: ["admin"],
       },
       {
         icon: "shopping-cart",
-        label: "POS / Orders",
+        label: "POS / Órdenes",
         path: "/pos",
         badge: "3",
         roles: ["admin", "waiter", "chef"],
       },
       {
         icon: "chef-hat",
-        label: "Kitchen",
+        label: "Cocina",
         path: "/kitchen",
         badge: "5",
         roles: ["admin", "chef"],
       },
-      { icon: "square", label: "Tables", path: "/tables", badge: "", roles: ["admin", "waiter"] },
+      { icon: "square", label: "Mesas", path: "/tables", badge: "", roles: ["admin", "waiter"] },
     ],
   },
   {
-    label: "Management",
+    label: "Gestión",
     items: [
       {
         icon: "calendar",
-        label: "Reservations",
+        label: "Reservas",
         path: "/reservations",
         badge: "",
         roles: ["admin"],
       },
-      { icon: "utensils", label: "Menu", path: "/menu", badge: "", roles: ["*"] },
-      { icon: "package", label: "Inventory", path: "/inventory", badge: "", roles: ["admin"] },
+      { icon: "utensils", label: "Menú", path: "/menu", badge: "", roles: ["*"] },
+      { icon: "package", label: "Inventario", path: "/inventory", badge: "", roles: ["admin"] },
       {
         icon: "credit-card",
-        label: "Payments",
+        label: "Pagos",
         path: "/payments",
         badge: "",
         roles: ["admin", "cashier"],
       },
-      { icon: "bar-chart-3", label: "Reports", path: "/reports", badge: "", roles: ["admin"] },
+      { icon: "bar-chart-3", label: "Reportes", path: "/reports", badge: "", roles: ["admin"] },
     ],
   },
   {
-    label: "System",
+    label: "Sistema",
     items: [
-      { icon: "settings", label: "Settings", path: "/settings", badge: "", roles: ["admin"] },
+      { icon: "settings", label: "Configuración", path: "/settings", badge: "", roles: ["admin"] },
+      { icon: "bell", label: "Notificaciones", path: "/notifications", badge: "", roles: ["*"] },
     ],
   },
 ];
 
 const BOTTOM_NAV_ITEMS = [
-  { icon: "layout-dashboard", label: "Dashboard", path: "/dashboard" },
+  { icon: "layout-dashboard", label: "Panel", path: "/dashboard" },
   { icon: "shopping-cart", label: "POS", path: "/pos" },
-  { icon: "square", label: "Tables", path: "/tables" },
-  { icon: "credit-card", label: "Payments", path: "/payments" },
-  { icon: "chef-hat", label: "Kitchen", path: "/kitchen" },
-  { icon: "utensils", label: "Menu", path: "/menu" },
-  { icon: "calendar", label: "Reserv.", path: "/reservations" },
-  { icon: "package", label: "Inventory", path: "/inventory" },
-  { icon: "bar-chart-3", label: "Reports", path: "/reports" },
-  { icon: "settings", label: "Settings", path: "/settings" },
+  { icon: "square", label: "Mesas", path: "/tables" },
+  { icon: "credit-card", label: "Pagos", path: "/payments" },
+  { icon: "chef-hat", label: "Cocina", path: "/kitchen" },
+  { icon: "utensils", label: "Menú", path: "/menu" },
+  { icon: "calendar", label: "Reservas", path: "/reservations" },
+  { icon: "package", label: "Inventario", path: "/inventory" },
+  { icon: "bar-chart-3", label: "Reportes", path: "/reports" },
+  { icon: "bell", label: "Notificaciones", path: "/notifications" },
+  { icon: "settings", label: "Configuración", path: "/settings" },
 ];
 
 function getBottomNavItems(role) {
@@ -79,6 +83,12 @@ function getBottomNavItems(role) {
     return isRouteAllowed(item.path, role);
   });
   return visible.slice(0, 5);
+}
+
+function getNavUnreadBadge(role) {
+  const count = getUnreadCount(role);
+  if (count <= 0) return "";
+  return count > 9 ? "9+" : String(count);
 }
 
 function toggleSidebar() {
@@ -119,7 +129,7 @@ const AppShell = {
     const user = window.userData || {
       name: "Maria Castillo",
       initials: "MC",
-      role: "Administrator",
+      role: "Administrador",
     };
 
     el.innerHTML =
@@ -130,8 +140,8 @@ const AppShell = {
       '<nav class="flex-1 px-3 flex flex-col overflow-y-auto gap-1"></nav>' +
       '<footer class="flex items-center gap-3 px-5 py-4 shrink-0 border-t border-white/20"></footer>' +
       "</aside>" +
-      '<header class="bg-brand-50 border-b-2 border-brand-300 z-10 flex items-center px-4 lg:px-6 gap-3 col-start-1 lg:col-start-2 row-start-1"></header>' +
-      '<main id="main-content" class="p-4 lg:p-6 overflow-auto bg-brand-100 col-start-1 lg:col-start-2 row-start-2 pb-36 lg:pb-20"></main>' +
+      '<header class="bg-brand-50 border-b-2 border-brand-300 z-[9999] flex items-center px-4 lg:px-6 gap-3 col-start-1 lg:col-start-2 row-start-1"></header>' +
+      '<main id="main-content" class="p-4 lg:p-6 overflow-auto bg-brand-100 col-start-1 lg:col-start-2 row-start-2 pb-[calc(var(--bottom-nav-h)+var(--cart-bar-h)+env(safe-area-inset-bottom,0px))] lg:pb-20"></main>' +
       "</div>" +
       '<nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 lg:hidden bg-white border-t border-brand-200 flex items-stretch justify-around pb-[env(safe-area-inset-bottom,0px)]"></nav>';
 
@@ -207,9 +217,10 @@ const AppShell = {
         const bar = isActive
           ? '<span class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-accent-400 rounded-r-full"></span>'
           : "";
-        const badge = item.badge
+        const badge = item.path === "/notifications" ? getNavUnreadBadge(userRole) : item.badge;
+        const badgeHtml = badge
           ? '<span class="ml-auto bg-accent-400 text-white text-[11px] font-bold px-[7px] py-0.5 rounded-full min-w-[20px] text-center">' +
-            item.badge +
+            badge +
             "</span>"
           : "";
         html +=
@@ -222,7 +233,7 @@ const AppShell = {
         html +=
           '<i data-lucide="' + item.icon + '" class="w-5 h-5 shrink-0 ' + iconClasses + '"></i>';
         html += '<span class="flex-1">' + item.label + "</span>";
-        html += badge;
+        html += badgeHtml;
         html += "</a>";
       });
     });
@@ -244,7 +255,7 @@ const AppShell = {
       user.role +
       "</span>" +
       "</div>" +
-      '<button id="appShellLogout" class="flex items-center justify-center transition-colors bg-transparent border-none text-white cursor-pointer p-1" aria-label="Logout">' +
+      '<button id="appShellLogout" class="flex items-center justify-center transition-colors bg-transparent border-none text-white cursor-pointer p-1" aria-label="Cerrar sesión">' +
       '<i data-lucide="log-out" class="w-[18px] h-[18px]"></i>' +
       "</button>";
   },
@@ -252,7 +263,7 @@ const AppShell = {
   renderTopbar: function (el) {
     const title = AppShell.getRouteTitle(window.location.hash.slice(1));
     el.innerHTML =
-      '<button id="sidebarToggle" class="lg:hidden w-10 h-10 rounded-full border border-brand-300 bg-white text-brand-600 hover:bg-brand-100 hover:border-brand-400 flex items-center justify-center transition-colors duration-100 shrink-0" aria-label="Toggle menu">' +
+      '<button id="sidebarToggle" class="lg:hidden w-10 h-10 rounded-full border border-brand-300 bg-white text-brand-600 hover:bg-brand-100 hover:border-brand-400 flex items-center justify-center transition-colors duration-100 shrink-0" aria-label="Alternar menú">' +
       '<i data-lucide="menu" class="w-[18px] h-[18px]"></i>' +
       "</button>" +
       '<h1 id="topbarTitle" class="text-[16px] lg:text-[18px] font-bold text-brand-800 font-display tracking-tight truncate">' +
@@ -261,15 +272,12 @@ const AppShell = {
       '<div class="flex-1"></div>' +
       '<div class="hidden md:flex items-center border border-brand-300 rounded-full gap-2 h-10 px-4 w-[240px] focus-within:border-brand-500 focus-within:shadow-[var(--ring-brand)] transition-all duration-100">' +
       '<i data-lucide="search" class="w-4 h-4 text-brand-500 shrink-0"></i>' +
-      '<input type="text" placeholder="Search orders, tables..." class="bg-transparent border-none outline-none flex-1 text-[13px] text-neutral-900 placeholder:text-brand-400" />' +
+      '<input type="text" placeholder="Buscar órdenes, mesas..." class="bg-transparent border-none outline-none flex-1 text-[13px] text-neutral-900 placeholder:text-brand-400" />' +
       "</div>" +
       '<div class="hidden md:block w-px h-6 bg-brand-300"></div>' +
-      '<button class="relative w-10 h-10 rounded-full border border-brand-300 bg-white text-brand-600 hover:bg-brand-100 hover:border-brand-400 hover:text-brand-700 flex items-center justify-center transition-colors duration-100">' +
-      '<i data-lucide="bell" class="w-[18px] h-[18px]"></i>' +
-      '<span class="absolute w-2 h-2 rounded-full bg-error-500 top-2 right-2 border-2 border-white"></span>' +
-      "</button>" +
+      '<div id="appShellNotifications" class="relative"></div>' +
       '<div id="demo-role-switcher-container" class="relative"></div>' +
-      '<button id="appShellThemeToggle" class="w-10 h-10 rounded-full border border-brand-300 bg-white text-brand-600 hover:bg-brand-100 hover:border-brand-400 hover:text-brand-700 flex items-center justify-center transition-colors duration-100" aria-label="Toggle theme">' +
+      '<button id="appShellThemeToggle" class="w-10 h-10 rounded-full border border-brand-300 bg-white text-brand-600 hover:bg-brand-100 hover:border-brand-400 hover:text-brand-700 flex items-center justify-center transition-colors duration-100" aria-label="Alternar tema">' +
       '<i data-lucide="' +
       (isDark() ? "moon" : "sun") +
       '" class="w-[18px] h-[18px]"></i>' +
@@ -278,6 +286,11 @@ const AppShell = {
     const toggleBtn = document.getElementById("sidebarToggle");
     if (toggleBtn) {
       toggleBtn.addEventListener("click", toggleSidebar);
+    }
+
+    const notifMount = document.getElementById("appShellNotifications");
+    if (notifMount) {
+      NotificationBell.mount(notifMount);
     }
   },
 
@@ -318,20 +331,21 @@ const AppShell = {
 
   getRouteTitle: function (path) {
     const titles = {
-      "/dashboard": "Dashboard",
-      "/pos": "POS / Orders",
-      "/kitchen": "Kitchen Dashboard",
-      "/tables": "Table Management",
-      "/reservations": "Reservations",
-      "/payments": "Payments",
-      "/menu": "Menu Management",
-      "/inventory": "Inventory",
-      "/reports": "Reports",
-      "/settings": "Settings",
-      "/admin": "Admin",
-      "/orders": "POS / Orders",
+      "/dashboard": "Panel",
+      "/pos": "POS / Órdenes",
+      "/kitchen": "Panel de cocina",
+      "/tables": "Gestión de mesas",
+      "/reservations": "Reservas",
+      "/payments": "Pagos",
+      "/menu": "Gestión de menú",
+      "/inventory": "Inventario",
+      "/reports": "Reportes",
+      "/settings": "Configuración",
+      "/notifications": "Notificaciones",
+      "/admin": "Administración",
+      "/orders": "POS / Órdenes",
     };
-    return titles[path] || "Dashboard";
+    return titles[path] || "Panel";
   },
 
   updateTopbarTitle: function (path) {
@@ -347,5 +361,12 @@ const AppShell = {
     closeSidebar();
   },
 };
+
+window.addEventListener("notifications:updated", function () {
+  const nav = document.querySelector("[data-app-shell] aside > nav");
+  if (nav) {
+    AppShell.renderSidebarNav(nav);
+  }
+});
 
 export default AppShell;

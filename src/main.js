@@ -14,6 +14,7 @@ import Menu from "./views/menu/list.js";
 import Inventory from "./views/inventory/Inventory.js";
 import Reports from "./views/reports/Reports.js";
 import Settings from "./views/settings/Settings.js";
+import Notifications from "./views/notifications/Notifications.js";
 import { initRoleSwitcher } from "./components/dev/RoleSwitcher.js";
 
 window.createIcons = function () {
@@ -34,6 +35,7 @@ const routes = {
   "/inventory": { view: Inventory, shell: true, auth: true },
   "/reports": { view: Reports, shell: true, auth: true },
   "/settings": { view: Settings, shell: true, auth: true },
+  "/notifications": { view: Notifications, shell: true, auth: true },
   "/admin": { view: Dashboard, shell: true, auth: true },
   "/orders": { view: PosView, shell: true, auth: true },
 };
@@ -94,12 +96,12 @@ function renderView() {
     if (route.shell) {
       window.currentRole = user ? user.role : "admin";
       const roleLabels = {
-        admin: "Administrator",
-        waiter: "Waiter",
-        chef: "Chef",
-        cashier: "Cashier",
+        admin: "Administrador",
+        waiter: "Mesero",
+        chef: "Cocinero",
+        cashier: "Cajero",
       };
-      const username = user ? user.displayName || user.username || "Admin" : "Admin";
+      const username = user ? user.displayName || user.username || "Administrador" : "Administrador";
       const initials = username
         .split(" ")
         .map(function (w) {
@@ -108,7 +110,7 @@ function renderView() {
         .join("")
         .toUpperCase()
         .slice(0, 2);
-      const roleText = roleLabels[user ? user.role : "admin"] || "Administrator";
+      const roleText = roleLabels[user ? user.role : "admin"] || "Administrador";
       window.userData = {
         name: username,
         initials: initials,

@@ -90,7 +90,7 @@ export function createToast({
                 data-toast-dismiss="${id}"
                 id="${closeId}"
                 class="shrink-0 w-7 h-7 flex items-center justify-center rounded-md ${colors.close} hover:bg-white/10 transition-colors cursor-pointer border-none"
-                aria-label="Dismiss notification"
+                aria-label="Descartar notificación"
               >
                 <i data-lucide="x" class="w-4 h-4"></i>
               </button>`

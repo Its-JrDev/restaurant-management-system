@@ -2,22 +2,22 @@ import { formModal } from "./FormModal.js";
 import { allOrders } from "../../store/posData.js";
 
 const PAYMENT_METHODS = [
-  { id: "cash", name: "Cash" },
-  { id: "card", name: "Card" },
-  { id: "transfer", name: "Transfer" },
+  { id: "cash", name: "Efectivo" },
+  { id: "card", name: "Tarjeta" },
+  { id: "transfer", name: "Transferencia" },
 ];
 
 const enabledMethods = { cash: true, card: true, transfer: true };
 
 class PaymentModal {
-  async show({ title = "New Payment" } = {}) {
+  async show({ title = "Nuevo pago" } = {}) {
     const unpaidOrders = allOrders.filter((o) => o.status === "served");
 
     const orderOptions = [
-      { value: "", label: "Select an order..." },
+      { value: "", label: "Seleccionar una orden..." },
       ...unpaidOrders.map((order) => ({
         value: order.fullId,
-        label: `Order #${order.id} - Table ${order.tableNumber || order.table} ($${order.total.toFixed(2)})`,
+        label: `Orden #${order.id} - Mesa ${order.tableNumber || order.table} ($${order.total.toFixed(2)})`,
       })),
     ];
 
@@ -29,14 +29,14 @@ class PaymentModal {
     return formModal.show({
       title,
       width: 380,
-      confirmText: "Create Payment",
+      confirmText: "Registrar pago",
       fields: [
         {
           id: "orderId",
-          label: "Order",
+          label: "Orden",
           type: "select",
           required: true,
-          placeholder: "Select an order...",
+          placeholder: "Seleccionar una orden...",
           options: orderOptions,
           fullWidth: true,
           onChange: (val, _formData, setFieldValue) => {
@@ -48,16 +48,16 @@ class PaymentModal {
         },
         {
           id: "method",
-          label: "Payment Method",
+          label: "Método de pago",
           type: "select",
           required: true,
-          placeholder: "Select method...",
+          placeholder: "Seleccionar método...",
           options: methodOptions,
           fullWidth: true,
         },
         {
           id: "amount",
-          label: "Amount",
+          label: "Monto",
           type: "number",
           required: true,
           placeholder: "0.00",

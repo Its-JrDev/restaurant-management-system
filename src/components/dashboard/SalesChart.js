@@ -30,9 +30,9 @@ const SalesChart = {
   renderLegend: function () {
     let html = '<div class="flex gap-2 mb-4">';
     html +=
-      '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-100 text-brand-700"><span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span> This Week</span>';
+      '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-100 text-brand-700"><span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span> Esta semana</span>';
     html +=
-      '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-500">Last Week</span>';
+      '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-500">Semana pasada</span>';
     html += "</div>";
     return html;
   },
@@ -68,7 +68,7 @@ const SalesChart = {
       /* silent */
     }
 
-    const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const labels = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
     const thisWeekRevenue = thisWeekData.map((d) => d.revenue || 0);
     const lastWeekRevenue = lastWeekData.map((d) => d.revenue || 0);
 
@@ -84,14 +84,14 @@ const SalesChart = {
         labels: labels,
         datasets: [
           {
-            label: "This Week",
+            label: "Esta semana",
             data: thisWeekRevenue.slice(0, 7),
             backgroundColor: tokens.thisWeek,
             borderRadius: 6,
             barPercentage: 0.6,
           },
           {
-            label: "Last Week",
+            label: "Semana pasada",
             data: lastWeekRevenue.slice(0, 7),
             backgroundColor: tokens.lastWeek,
             borderRadius: 6,

@@ -91,8 +91,8 @@ export function render(container) {
               <img class="logo h-20 sm:h-24 w-auto pb-1 object-contain md:hidden"
                    src="${getLogoPath("logo-00")}" alt="El Fogón" draggable="false">
               <div class="flex flex-col gap-1.5">
-                <h1 class="text-xl sm:text-2xl font-semibold leading-snug text-neutral-900">Good to see you again</h1>
-                <p class="text-xs sm:text-sm font-normal leading-normal text-neutral-600">Sign in to manage tables, orders, and reservations.</p>
+                <h1 class="text-xl sm:text-2xl font-semibold leading-snug text-neutral-900">Qué bueno verte de nuevo</h1>
+                <p class="text-xs sm:text-sm font-normal leading-normal text-neutral-600">Inicia sesión para gestionar mesas, pedidos y reservaciones.</p>
               </div>
             </header>
 
@@ -107,54 +107,54 @@ export function render(container) {
               <div class="flex items-center justify-between gap-3 flex-wrap text-xs sm:text-sm">
                 <div id="checkboxContainer"></div>
                 <a href="#" class="text-label font-medium text-primary-600 no-underline whitespace-nowrap
-                                   hover:text-primary-700 hover:underline">Forgot your password?</a>
+                                   hover:text-primary-700 hover:underline">¿Olvidaste tu contraseña?</a>
               </div>
               <div id="submitContainer"></div>
             </div>
 
             <!-- Bottom CTA -->
             <footer class="flex items-center justify-center gap-1 text-xs sm:text-sm font-normal text-neutral-600 pt-1">
-              <span>Don't have an account?</span>
-              <a href="#" class="font-semibold text-primary-600 no-underline hover:text-primary-700 hover:underline">Contact Us</a>
+              <span>¿No tienes una cuenta?</span>
+              <a href="#" class="font-semibold text-primary-600 no-underline hover:text-primary-700 hover:underline">Contáctanos</a>
             </footer>
 
           </form>
 
           <!-- 1-Click Demo Logins -->
           <div class="mt-6 w-full">
-            <p class="text-xs font-semibold text-neutral-500 text-center uppercase tracking-wider hidden md:block mb-2.5">Demo Accounts</p>
+            <p class="text-xs font-semibold text-neutral-500 text-center uppercase tracking-wider hidden md:block mb-2.5">Cuentas de demostración</p>
             <button type="button" id="demoAccountsToggleBtn" class="w-full md:hidden flex items-center justify-center gap-2 p-3 rounded-lg border border-brand-300 bg-white text-sm font-semibold text-brand-600 cursor-pointer hover:bg-brand-50 shadow-sm transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              <span>Show Demo Accounts</span>
+              <span>Mostrar cuentas de demostración</span>
             </button>
 
             <!-- Bottom sheet on mobile / Normal grid on desktop -->
             <div id="demoAccountsContainer" class="max-md:fixed max-md:inset-0 max-md:bg-black/50 max-md:z-[100] max-md:hidden max-md:items-end transition-opacity md:block">
               <div class="max-md:bg-brand-50 max-md:w-full max-md:p-6 max-md:rounded-t-3xl max-md:shadow-[0_-8px_30px_rgba(0,0,0,0.12)] max-md:transform max-md:transition-transform max-md:translate-y-full" id="demoAccountsSheet">
                 <div class="flex items-center justify-between md:hidden mb-4">
-                  <h3 class="text-base font-bold text-neutral-900">Demo Accounts</h3>
+                  <h3 class="text-base font-bold text-neutral-900">Cuentas de demostración</h3>
                   <button type="button" id="demoAccountsCloseBtn" class="w-8 h-8 flex items-center justify-center text-neutral-500 hover:bg-brand-200 rounded-full bg-brand-100">✕</button>
                 </div>
                 <div class="grid grid-cols-2 gap-2.5 sm:gap-3">
                   <button type="button" class="demo-login-btn flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-lg border border-brand-300 bg-white hover:bg-brand-50 hover:border-brand-400 transition-colors" data-email="admin@elfogon.com">
-                    <span class="text-xs sm:text-sm font-semibold text-neutral-900">Admin</span>
+                    <span class="text-xs sm:text-sm font-semibold text-neutral-900">Administrador</span>
                     <span class="text-[10px] sm:text-[11px] text-neutral-500">admin@elfogon.com</span>
-                    <span class="text-[10px] sm:text-[11px] font-mono text-brand-600 mt-0.5">pwd: password123</span>
+                    <span class="text-[10px] sm:text-[11px] font-mono text-brand-600 mt-0.5">contraseña: password123</span>
                   </button>
                   <button type="button" class="demo-login-btn flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-lg border border-brand-300 bg-white hover:bg-brand-50 hover:border-brand-400 transition-colors" data-email="chef1@elfogon.com">
-                    <span class="text-xs sm:text-sm font-semibold text-neutral-900">Chef</span>
+                    <span class="text-xs sm:text-sm font-semibold text-neutral-900">Cocinero</span>
                     <span class="text-[10px] sm:text-[11px] text-neutral-500">chef1@elfogon.com</span>
-                    <span class="text-[10px] sm:text-[11px] font-mono text-brand-600 mt-0.5">pwd: password123</span>
+                    <span class="text-[10px] sm:text-[11px] font-mono text-brand-600 mt-0.5">contraseña: password123</span>
                   </button>
                   <button type="button" class="demo-login-btn flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-lg border border-brand-300 bg-white hover:bg-brand-50 hover:border-brand-400 transition-colors" data-email="waiter1@elfogon.com">
-                    <span class="text-xs sm:text-sm font-semibold text-neutral-900">Waiter</span>
+                    <span class="text-xs sm:text-sm font-semibold text-neutral-900">Mesero</span>
                     <span class="text-[10px] sm:text-[11px] text-neutral-500">waiter1@elfogon.com</span>
-                    <span class="text-[10px] sm:text-[11px] font-mono text-brand-600 mt-0.5">pwd: password123</span>
+                    <span class="text-[10px] sm:text-[11px] font-mono text-brand-600 mt-0.5">contraseña: password123</span>
                   </button>
                   <button type="button" class="demo-login-btn flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-lg border border-brand-300 bg-white hover:bg-brand-50 hover:border-brand-400 transition-colors" data-email="cashier1@elfogon.com">
-                    <span class="text-xs sm:text-sm font-semibold text-neutral-900">Cashier</span>
+                    <span class="text-xs sm:text-sm font-semibold text-neutral-900">Cajero</span>
                     <span class="text-[10px] sm:text-[11px] text-neutral-500">cashier1@elfogon.com</span>
-                    <span class="text-[10px] sm:text-[11px] font-mono text-brand-600 mt-0.5">pwd: password123</span>
+                    <span class="text-[10px] sm:text-[11px] font-mono text-brand-600 mt-0.5">contraseña: password123</span>
                   </button>
                 </div>
               </div>
@@ -183,10 +183,10 @@ export function init() {
   // Email input
   formBody.innerHTML += InputField({
     id: "email",
-    label: "Email address",
+    label: "Correo electrónico",
     type: "email",
-    placeholder: "you@elfogon.com",
-    error: "Please enter a valid email address",
+    placeholder: "tu@elfogon.com",
+    error: "Por favor ingresa un correo electrónico válido",
     required: true,
     autocomplete: "email",
   });
@@ -194,7 +194,7 @@ export function init() {
   // Password input with toggle
   formBody.innerHTML += `
     <div class="field flex flex-col gap-1">
-      <label class="text-label font-medium leading-loose text-neutral-900" for="password">Password</label>
+      <label class="text-label font-medium leading-loose text-neutral-900" for="password">Contraseña</label>
       <div class="relative flex items-center">
         <input
           class="field-input w-full h-11 px-3 pr-10 text-sm font-normal leading-normal text-neutral-900
@@ -207,7 +207,7 @@ export function init() {
           type="password"
           id="password"
           name="password"
-          placeholder="Enter your password"
+          placeholder="Ingresa tu contraseña"
           autocomplete="current-password"
           required
         >
@@ -219,19 +219,19 @@ export function init() {
   // Checkbox
   checkboxContainer.innerHTML = CheckboxField({
     id: "keepSignedIn",
-    label: "Keep me signed in",
+    label: "Mantener sesión iniciada",
   });
 
   // Submit button
   submitContainer.innerHTML = SubmitButton({
-    text: "Sign In",
+    text: "Iniciar Sesión",
     id: "signInBtn",
   });
 
   // Initialize components
   initInputField("email");
   initCheckboxField("keepSignedIn");
-  initSubmitButton("signInBtn", { loadingText: "Signing in..." });
+  initSubmitButton("signInBtn", { loadingText: "Iniciando sesión..." });
   initPasswordToggles();
 
   // Initialize Lucide icons
@@ -317,7 +317,7 @@ export function init() {
 
       if (signInBtn) {
         signInBtn.disabled = true;
-        signInBtn.textContent = "Signing in...";
+        signInBtn.textContent = "Iniciando sesión...";
       }
 
       const keepSignedInInput = document.getElementById("keepSignedIn");
@@ -326,14 +326,14 @@ export function init() {
       const result = await authStore.login(email, password, keepSignedIn);
 
       if (result.success) {
-        toast.success("Welcome back!", "Logged in as " + (result.user.role || "admin"));
+        toast.success("¡Bienvenido de nuevo!", "Sesión iniciada como " + (result.user.role || "admin"));
         window.location.hash = "#" + getHomeRoute(result.user.role);
       } else {
         if (signInBtn) {
           signInBtn.disabled = false;
-          signInBtn.textContent = "Sign In";
+          signInBtn.textContent = "Iniciar Sesión";
         }
-        if (errorText) errorText.textContent = result.error || "Invalid credentials";
+        if (errorText) errorText.textContent = result.error || "Credenciales inválidas";
         if (errorBox) errorBox.classList.remove("hidden");
       }
     });

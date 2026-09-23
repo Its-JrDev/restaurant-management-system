@@ -83,7 +83,7 @@ export async function createProduct(data) {
     description: data.description || "",
     price: parseFloat(data.price),
     category_id: data.category_id,
-    is_available: true,
+    is_available: data.available !== false,
     image_url: data.image_url || null,
     created_at: new Date().toISOString(),
   };
@@ -104,12 +104,12 @@ export async function updateProduct(id, data) {
   if (updated) {
     return { success: true, product: mapMenuItem(updated) };
   }
-  return { success: false, error: "Product not found" };
+  return { success: false, error: "Producto no encontrado" };
 }
 
 export async function toggleProductAvailability(id) {
   const product = await getProductById(id);
-  if (!product) return { success: false, error: "Product not found" };
+  if (!product) return { success: false, error: "Producto no encontrado" };
   return updateProduct(id, { ...product, available: !product.available });
 }
 

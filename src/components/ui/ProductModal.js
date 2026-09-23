@@ -2,30 +2,30 @@ import { formModal } from "./FormModal.js";
 import * as menuService from "../../services/menuService.js";
 
 class ProductModal {
-  async show({ title = "New Product", preset = {} } = {}) {
+  async show({ title = "Nuevo producto", preset = {} } = {}) {
     const categories = await menuService.getAllCategories();
 
     const categoryOptions = [
-      { value: "", label: "Select a category..." },
+      { value: "", label: "Seleccionar categoría..." },
       ...categories.map((cat) => ({ value: cat.id, label: cat.name })),
     ];
 
     return formModal.show({
       title,
       width: 420,
-      confirmText: "Save Product",
+      confirmText: "Guardar producto",
       fields: [
         {
           id: "name",
-          label: "Name",
+          label: "Nombre",
           type: "text",
           required: true,
           value: preset.name || "",
-          placeholder: "e.g. Grilled Chicken",
+          placeholder: "Ej. Pollo a la parrilla",
         },
         {
           id: "category_id",
-          label: "Category",
+          label: "Categoría",
           type: "select",
           required: true,
           value: preset.category_id || "",
@@ -33,15 +33,15 @@ class ProductModal {
         },
         {
           id: "description",
-          label: "Description",
+          label: "Descripción",
           type: "textarea",
           value: preset.description || "",
-          placeholder: "Product description...",
+          placeholder: "Descripción del producto...",
           fullWidth: true,
         },
         {
           id: "price",
-          label: "Price",
+          label: "Precio",
           type: "number",
           required: true,
           value: preset.price || "",
@@ -51,14 +51,14 @@ class ProductModal {
         },
         {
           id: "image_url",
-          label: "Image URL",
+          label: "URL de imagen",
           type: "text",
           value: preset.image_url || "",
           placeholder: "https://example.com/image.jpg",
         },
         {
           id: "available",
-          label: "Available",
+          label: "Disponible",
           type: "checkbox",
           value: preset.available !== false,
           fullWidth: true,

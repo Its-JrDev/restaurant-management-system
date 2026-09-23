@@ -166,6 +166,7 @@ export const initialData = {
     { id: "inv-24", name: "Azucar", unit: "kg", quantity: 20, min_stock: 8 }
   ],
   inventory_movements: [],
+  notifications: [],
   settings: {
     restaurant_name: "El Fogón Caribeño",
     address: "Av. Costera 456, Playa del Carmen",
