@@ -1,4 +1,5 @@
-import { createIcons, icons } from "lucide";
+import { createIcons } from "lucide";
+import * as LucideIcons from "lucide";
 import * as authStore from "./store/auth.js";
 import { getHomeRoute, isRouteAllowed } from "./utils/routeGuard.js";
 import { initTheme } from "./utils/theme.js";
@@ -17,8 +18,12 @@ import Settings from "./views/settings/Settings.js";
 import Notifications from "./views/notifications/Notifications.js";
 import { initRoleSwitcher } from "./components/dev/RoleSwitcher.js";
 
+const allIcons = { ...LucideIcons };
+delete allIcons.createIcons;
+delete allIcons.icons;
+
 window.createIcons = function () {
-  createIcons({ icons });
+  createIcons({ icons: allIcons });
 };
 
 let currentView = null;

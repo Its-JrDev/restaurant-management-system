@@ -72,21 +72,10 @@ class ToastManager {
     return id;
   }
 
-  success(title, message, options = {}) {
-    return this.show({ type: "success", title, message, ...options });
-  }
-
-  error(title, message, options = {}) {
-    return this.show({ type: "error", title, message, ...options });
-  }
-
-  warning(title, message, options = {}) {
-    return this.show({ type: "warning", title, message, ...options });
-  }
-
-  info(title, message, options = {}) {
-    return this.show({ type: "info", title, message, ...options });
-  }
+  success = (title, message, options = {}) => this.show({ type: "success", title, message, ...options });
+  error = (title, message, options = {}) => this.show({ type: "error", title, message, ...options });
+  warning = (title, message, options = {}) => this.show({ type: "warning", title, message, ...options });
+  info = (title, message, options = {}) => this.show({ type: "info", title, message, ...options });
 
   dismiss(id) {
     const index = this.toasts.findIndex((t) => t.id === id);
