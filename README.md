@@ -2,9 +2,9 @@
 
 A staff-centered web platform for small and medium restaurants: reservations, table management, ordering, kitchen workflow, payments, inventory, reporting, and system settings.
 
-> **Note:** This project is a **Frontend-only Demo** designed for my portfolio. It is a standalone, backend-less version of a [Collaborative Full-Stack Project](https://github.com/Riwi-Projects-Cohort-5) that I built alongside my teammates. 
+> **Note:** This project is a **Frontend-only Demo** designed for my portfolio. It is a standalone, backend-less version of a [Collaborative Full-Stack Project](https://github.com/Riwi-Projects-Cohort-5/restaurant-management-system) that I built alongside my teammates. 
 > 
-> **My Role in the Original Project:** Frontend Developer & UI/UX Designer
+> **My Role in the Original Project:** Scrum Master, Frontend Developer & UI/UX Designer
 >
 > In this demo branch, the Python/PostgreSQL backend has been completely removed. The app now runs entirely in the browser using a LocalStorage mock database to showcase the UI, UX, and frontend architecture without requiring complex environment setups.
 
