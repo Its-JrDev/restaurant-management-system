@@ -1,0 +1,14 @@
+{
+  "name": "El Fogón — POS & Restaurant Management",
+  "short_name": "El Fogón POS",
+  "theme_color": "#e57722",
+  "background_color": "#fef7ee",
+  "display": "standalone",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
